@@ -1,0 +1,686 @@
+'##############
+'Matrix Script
+'##############
+
+'Simulates 90s style Full Matrix Line and Terminus Display (Type AEG Krüger)
+
+'(c) 17.09.2013 Marcel Kuhnt
+
+'Script Version: 1.0
+'Omsi release: 2.0
+
+'Needs:
+'- Cockpit (Batterietrennschalter)
+'- IBIS
+
+'NrSpecRandom Seed Area:
+'971: Anzahl der Fehlerpixel pro Jahr
+
+
+'Revision History:
+'- Marcel Kuhnt		29.09.2012	Created from scratch
+'- Marcel Kuhnt		17.09.2013	Steckschilder für ausgewählte Ziele
+'- Marcel Kuhnt		17.09.2013	Seitenschild
+'- Marcel Kuhnt		13.10.2013	Neuer Seitenschildpfad
+'- Marcel Kuhnt		20.12.2013	Bugfix: Steckschild-Init
+'------------------------------------------------------------------------------------------
+
+{macro:Matrix_init}
+	-1 (S.L.Matrix_RefreshCursor)
+	(L.S.Year) (C.L.Matrix_Baujahr) - 0.01 max (C.L.Matrix_Fehlerpixel_pro_Jahr) * 971 (M.V.NrSpecRandom) 1 + * (S.L.Matrix_Fehlerpixel)
+
+	-1 (S.L.matrix_steckschild_Termindex)
+	0 (S.L.matrix_steckschild_vis)
+{end}
+
+
+{trigger:ai_scheduled_settarget}
+
+'Stromversorgung herstellen:
+	1 (S.L.elec_busbar_main_sw)	
+	1.0 (S.L.elec_V_battery)
+
+'Hier wird die Nummer eingestellt:
+	(L.$.SetLineTo) (S.$.Matrix_Nr)
+
+'Hier wird das Ziel eingestellt:
+	1 (S.L.elec_busbar_main_sw)
+
+	(L.L.AI_target_index) s0 (M.V.GetTerminusCode) s1
+'Wenn der Terminus-Code größer als 1000 ist, dann bitte Steckschild verwenden:
+	1000 >
+	{if}
+		l1 1000 - (S.L.matrix_steckschild_index)
+		l0 (S.L.matrix_steckschild_Termindex)
+'Matrix auf 0:
+		0 (S.L.IBIS_TerminusIndex) s2
+	{else}
+		l0 (S.L.IBIS_TerminusIndex) s2
+		-1 (S.L.matrix_steckschild_Termindex)
+
+		-1 (S.L.Matrix_TerminusIndex_Last)
+
+'Wenn der Bitmap-String in Verwendung ist, dann den als Integer interpretieren und Steckschild zusätzlich setzen:
+		l0 6 (M.V.GetTerminusString) $StrToFloat s1
+		l1 1000 >
+		{if}
+			l1 1000 - (S.L.matrix_steckschild_index)
+			l0 (S.L.matrix_steckschild_Termindex)			
+		{endif}
+
+	{endif}
+	(M.L.matrix_setsteckschild)
+
+	l2 (M.V.GetTerminusCode) (S.L.IBIS_TerminusCode)
+
+	1 (S.L.matrix_refresh_seitenschild)
+
+{end}
+
+{macro:matrix_setsteckschild}
+	(L.L.matrix_steckschild_Termindex) s0
+	0 >= 
+	{if}
+		l0 6 (M.V.GetTerminusString) (S.$.Matrix_SchildFrnt)
+		1 $SetLengthL $StrToFloat 1 max (S.L.matrix_steckschild_vis)
+		"..\..\Anzeigen\SteckSchilder\" (L.$.Matrix_SchildFrnt) $+ (S.$.Matrix_SchildFrnt)
+	{else}
+		0 (S.L.matrix_steckschild_index) (S.L.matrix_steckschild_vis)
+		""  (S.$.Matrix_SchildFrnt)
+	{endif}
+{end}
+
+
+{macro:Matrix_frame}
+
+'******************************+
+'    Terminus-Matrix
+'******************************+
+
+
+
+	"Krueger 7x4" (M.V.GetFontIndex) (S.L.Font_7x4)
+	"Krueger 7x5" (M.V.GetFontIndex) (S.L.Font_7x5)
+	"Krueger 7x6" (M.V.GetFontIndex) (S.L.Font_7x6)
+	"Krueger 7x7" (M.V.GetFontIndex) (S.L.Font_7x7)
+	"Krueger 9x4" (M.V.GetFontIndex) (S.L.Font_9x4)
+	"Krueger 11x5" (M.V.GetFontIndex) (S.L.Font_11x5)
+	"Krueger 16x7" (M.V.GetFontIndex) (S.L.Font_16x7)
+	"Krueger 16x9" (M.V.GetFontIndex) (S.L.Font_16x9)
+
+
+
+
+'Erster Schritt: Linie erstellen:
+
+	(L.L.IBIS_Linie_Complex) s0 (L.L.Matrix_Nr_Last) = ! 
+	(L.L.elec_busbar_main) &&
+	{if}
+
+					l0 100 / trunc s1
+					(L.L.IBIS_Linie_Suffix) s4
+' l0: Originalzahl; l1: erste drei Ziffern; l4: letzte zwei Ziffern
+
+' Falls gleich 0, dann gar nix:
+					l1 0 =
+					{if}
+						""
+					{else}
+' Sonst die normale Nummer:
+						l1 trunc $IntToStr
+					{endif}
+
+					(S.$.Matrix_Nr)
+
+' ===============================================================================
+' Falls jetzt die hinteren beiden Ziffern (l2) etwas Interessantes enthalten:
+' ===============================================================================
+
+					l4 1 =
+					{if}
+						"E" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 2 =
+					{if}
+						"/^\"
+					{endif}
+					l4 3 =
+					{if}
+						"gh "
+					{endif}
+					l4 4 =
+					{if}
+						(L.$.Matrix_Nr) "N" $+
+					{endif}
+					l4 5 = l4 24 = ||
+					{if}
+						"S" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 6 =
+					{if}
+						"A" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+
+					l4 9 =
+					{if}
+						"E" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 10 =
+					{if}
+						(L.$.Matrix_Nr) "E" $+
+					{endif}
+					l4 11 =
+					{if}
+						"D" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 12 =
+					{if}
+						"C" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 13 =
+					{if}
+						"B" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 14 =
+					{if}
+						"A" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 15 =
+					{if}
+						"N" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+
+					l4 23 =
+					{if}
+						"S" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+' 24 s.o. bei 5!
+					l4 25 =
+					{if}
+						"U" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 26 =
+					{if}
+						"U" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 27 =
+					{if}
+						"M" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 28 =
+					{if}
+						"M" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 29 =
+					{if}
+						"BVG"
+					{endif}
+					l4 30 =
+					{if}
+						(L.$.Matrix_Nr) "S" $+
+					{endif}
+					l4 31 =
+					{if}
+						(L.$.Matrix_Nr) "U" $+
+					{endif}
+					l4 32 =
+					{if}
+						(L.$.Matrix_Nr) "M" $+
+					{endif}
+					l4 35 =
+					{if}
+						"N" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+					l4 36 =
+					{if}
+						"X" (L.$.Matrix_Nr) 2 $SetLengthR $+
+					{endif}
+
+					 $RemoveSpaces (S.$.Matrix_Nr)
+	{endif}
+
+
+'Zweiter Schritt: Ziel erstellen:
+
+	(L.L.IBIS_TerminusIndex) s0 (L.L.Matrix_TerminusIndex_Last) s1 = !
+	(L.L.elec_busbar_main) &&
+	{if}
+		l0 1 (M.V.GetTerminusString) $RemoveSpaces (S.$.Matrix_TerminusL1)
+		l0 2 (M.V.GetTerminusString) $RemoveSpaces (S.$.Matrix_TerminusL2)
+
+'Wenn nur die untere Zeile beschrieben ist, dann diese nach oben und untere leeren:
+		(L.$.Matrix_TerminusL1) "" $=
+		{if}
+			(L.$.Matrix_TerminusL2) (S.$.Matrix_TerminusL1)
+			"" (S.$.Matrix_TerminusL2)
+		{endif}
+	{endif}
+
+'Dritter Schritt: Speicherbitmap schreiben:
+
+    (L.L.IBIS_Linie_Complex) (L.L.Matrix_Nr_Last) = ! 
+    (L.L.IBIS_TerminusIndex) s0 (L.L.Matrix_TerminusIndex_Last) s1 = ! ||
+    (L.L.elec_busbar_main) &&
+    {if}
+
+
+	l0 (S.L.Matrix_TerminusAct)
+	(L.L.IBIS_Linie_Complex) (S.L.Matrix_Nr_Last)
+	(L.L.IBIS_Linie_Suffix) 99 = !
+	{if}
+	    l0 7 (M.V.GetTerminusString) $RemoveSpaces (S.$.Matrix_Bitmapfilename)
+	    "" $=
+	    {if}
+
+'3.0 Initialisieren der Bitmap und setzen der Farbe:
+
+		0 (M.V.STNewTex)
+		0 (M.V.STLock)
+
+		0
+		0
+		255
+		0
+		0
+		(M.V.STSetColor)
+
+
+'Ab hier gelten folgende Register-Zuordnungen:
+'l0 = Fontindex
+'l1 = Stringlänge (Pixel)
+'l2 = Y-Offset
+'l3 = Verfügbare Länge
+'l4 = Einzeilig
+'l5 = Zentrierungsaufschlag
+'l6 = Sperrpixelfaktor
+'l7 = (max.) Sperrung
+
+
+
+		(L.$.Matrix_Nr) "" $=
+		{if}
+			0 s1 (S.L.Matrix_Xpos)
+		{else}
+
+'3.A.0 Sperrpixelfaktor (l6):
+			(L.$.Matrix_Nr) $length 1 - 0 max s6
+'3.A.05 Setzen der Maximalbreite:
+			25 s3
+'3.A.1 Bestimmen des Fonts der Linie (vorne):
+
+			(L.$.Matrix_Nr) (L.L.Font_16x9) s0 (M.V.TextLength) l6 + s1
+			l3 >
+			{if}
+				(L.$.Matrix_Nr) (L.L.Font_16x7) s0 (M.V.TextLength) l6 + s1
+				l3 >
+				{if}
+					l1 l6 - s1
+					0 s7
+				{else}
+					1 s7
+				{endif}
+			{else}
+				1 s7
+			{endif}
+
+'	l0: Schriftart, l1: Länge in Pixeln
+
+'3.A.2 Schreiben:
+			0
+			0
+			0
+			l0
+			2
+			l7
+			(L.$.Matrix_Nr)
+			(M.V.STTextOut)
+
+'3.A.3 Bestimmen des Startpunktes des Zieles (Matrix_Xpos):
+		l1 3 + 30 max (S.L.Matrix_Xpos)
+
+'3.A.4 Bestimmen des Fonts der Linie (seite/hinten):
+
+
+			0 s2
+			(L.$.Matrix_Nr) (L.L.Font_16x9) s0 (M.V.TextLength) s1
+			l3 >
+			{if}
+				0 s2
+				(L.$.Matrix_Nr) (L.L.Font_16x7) s0 (M.V.TextLength) s1
+				l3 >
+				{if}
+					0 s2
+					(L.$.Matrix_Nr) (L.L.Font_11x5) s0 (M.V.TextLength) s1
+					l3 >
+					{if}
+						3 s2
+						(L.$.Matrix_Nr) (L.L.Font_9x4) s0 (M.V.TextLength) s1
+					{endif}
+				{endif}
+			{endif}
+
+
+'	l0: Schriftart, l1: Länge in Pixeln
+
+'3.A.5 Berechnen der Sperrung:
+			l3 l1 - l6 / trunc 1 min s7
+			l1 l6 l7 * + s1
+'3.A.6 Berechnen des Zentrierungsaufschlages (l5):
+			l3 l1 - 2 / trunc s5
+
+'3.A.7 Schreiben:
+			0
+			l5
+			16 l2 +
+			l0
+			2
+			l7
+			(L.$.Matrix_Nr)
+			(M.V.STTextOut)
+		{endif}
+
+
+'Schreiben des Zieles Front-Anzeige:
+
+		0 (S.L.Matrix_Ypos)
+
+		(M.L.Matrix_WriteTerminus)
+
+'Und Schreiben des Zieles Seitenanzeige:
+
+		30 (S.L.Matrix_Xpos)
+		16 (S.L.Matrix_Ypos)
+
+		(M.L.Matrix_WriteTerminus)
+
+'Fertig: Unlocken
+
+
+		0 (M.V.STUnlock)
+
+	    {else}
+		"..\..\Anzeigen\Krueger\" (L.$.Matrix_Bitmapfilename) $+ 0 (M.V.STLoadTex) $msg
+	    {endif}
+	    (L.L.Matrix_TerminusAct) (S.L.Matrix_TerminusIndex_Last)
+	    (M.L.matrix_refreshIntIndex)
+	{endif}
+'RefreshCursor zurücksetzen:
+	0 (S.L.Matrix_RefreshCursor)
+    {endif}
+
+'Nun sollen die Pixel schrittweise übertragen werden - zunächst mit 1Pixel/Frame:
+
+
+
+	(L.L.elec_busbar_main)
+	(L.L.Matrix_RefreshCursor) 0 >= &&
+	{if}	
+
+
+'Locken:
+		0 (M.V.STLock)
+		1 (M.V.STLock)
+
+
+'Sound abspielen:
+
+		(L.L.Matrix_RefreshCursor) 0 =
+		{if}
+			(T.L.ev_Matrix_Terminus_change)
+		{endif}
+
+
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+		(M.L.Matrix_PixelRefresh)
+
+
+'Unlocken:
+
+		0 (M.V.STUnlock)
+		1 (M.V.STUnlock)
+		1 (M.V.STFilter)
+
+
+	{endif}
+
+
+
+
+'Aktualisierung der Code-Tafel:
+
+	"Linienlisten\" (L.$.yard) "_ANX.jpg" $+ $+ (S.$.Matrix_Linelist)
+
+	(L.L.matrix_refresh_seitenschild)
+	{if}
+		"..\..\Anzeigen\Seitenschilder\" 2 (M.V.GetDepotStringGlobal) $+ "\" $+ (L.$.Matrix_Nr) $RemoveSpaces $+ ".bmp" $+ (S.$.Matrix_Seitenschild)
+		0 (S.L.matrix_refresh_seitenschild)
+	{endif}
+
+{end}
+
+
+
+
+'*------------------------------------------------------------------------------------------------------------
+
+{macro:Matrix_PixelRefresh}
+		(L.L.Matrix_RefreshCursor) (C.L.Matrix_HxW) 2 * >=
+		(L.L.Matrix_RefreshCursor) 0 < ||
+		{if}
+			(L.L.IBIS_Linie_Suffix) 99 =
+			{if}
+				(L.L.Matrix_Testcolor) ! (S.L.Matrix_Testcolor)
+				0
+			{else}
+				-1
+			{endif}
+			(S.L.Matrix_RefreshCursor)
+		{else}
+
+
+'X und Y berechnen:
+'l0: Ebene (vorne/Seite)
+'l1: X
+'l2: Y
+
+			(L.L.Matrix_RefreshCursor) (C.L.Matrix_HxW) / trunc s0
+			(L.L.Matrix_RefreshCursor) (C.L.Matrix_HxW) % (C.L.Matrix_Height) / trunc s1
+			(L.L.Matrix_RefreshCursor) (C.L.Matrix_HxW) % (C.L.Matrix_Height) % s2
+
+'Fehlerpixel berechnen:
+			(L.L.Matrix_RefreshCursor) (M.V.NrSpecRandom) 2 * (L.L.Matrix_Fehlerpixel) / s6
+			1 <
+			{if}
+				255 s7
+			{else}
+			l6 2 <
+			{if}
+				0 s7
+			{else}
+'Wenn 99er-Code, dann alles grün:
+			(L.L.IBIS_Linie_Suffix) 99 =
+			{if}
+				(L.L.Matrix_Testcolor) 255 * s7
+			{else}
+
+'Farbe setzen:
+				0
+				l1
+				l2 l0 16 * +
+				(M.V.STReadPixel) 
+
+				0 (M.V.STGetR) s7
+			{endif}
+			{endif}
+			{endif}
+
+
+			1
+			l7
+			255
+			255
+			255
+			(M.V.STSetColor)
+
+'Pixel zeichnen:
+			1
+			l1 (C.L.Matrix_PixelFactor) * s4
+			l2 l0 16 * + (C.L.Matrix_PixelFactor) * s5
+			l4 (C.L.Matrix_PixelFactor) + 2 -
+			l5 (C.L.Matrix_PixelFactor) + 2 -
+			(M.V.STDrawRect)
+
+'Cursor verschieben:
+			(L.L.Matrix_RefreshCursor) 1 + (S.L.Matrix_RefreshCursor)
+		{endif}
+{end}
+
+
+
+{macro:Matrix_WriteTerminus}
+
+'3.B.2 Bestimmen der verbliebenen Länge des Zieles vorne (l3):
+		115 (L.L.Matrix_Xpos) - s3
+
+
+'3.B.3 Einzeilig (l4)?
+		(L.$.Matrix_TerminusL2) "" $= s4
+
+'3.B.4 Bestimmen des Fonts der Zeile 1 des Ziels (l0/l1):
+
+		l4 {if}
+			9 s7
+			0 s2
+			(L.$.Matrix_TerminusL1) (L.L.Font_16x9) s0 (M.V.TextLength) s1
+			l3 >
+			{if}
+				7 s7
+				0 s2
+				(L.$.Matrix_TerminusL1) (L.L.Font_16x7) s0 (M.V.TextLength) s1
+				l3 >
+				{if}
+					5 s7
+					0 s2
+					(L.$.Matrix_TerminusL1) (L.L.Font_11x5) s0 (M.V.TextLength) s1
+					l3 >
+					{if}
+						4 s7
+						3 s2
+						(L.$.Matrix_TerminusL1) (L.L.Font_9x4) s0 (M.V.TextLength) s1
+					{endif}
+				{endif}
+			{endif}
+		{else}
+			7 s7
+			0 s2
+			(L.$.Matrix_TerminusL1) (L.L.Font_7x7) s0 (M.V.TextLength) s1
+			l3 >
+			{if}
+				0 s2
+				6 s7
+				(L.$.Matrix_TerminusL1) (L.L.Font_7x6) s0 (M.V.TextLength) s1
+				l3 >
+				{if}
+					0 s2
+					5 s7
+					(L.$.Matrix_TerminusL1) (L.L.Font_7x5) s0 (M.V.TextLength) s1
+					l3 >
+					{if}
+						0 s2
+						4 s7
+						(L.$.Matrix_TerminusL1) (L.L.Font_7x4) s0 (M.V.TextLength) s1
+					{endif}
+				{endif}
+			{endif}
+		{endif}
+'3.B.5 Berechnen des Sperrpixelfaktors: (Anzahl der Buchstaben, l6)
+	(L.$.Matrix_TerminusL1) $length 1 - 0 max s6
+'3.B.6 Berechnen der Sperrung:
+	l3 l1 - l6 / trunc l7 min s7
+	l1 l6 l7 * + s1
+'3.B.7 Berechnen des Zentrierungsaufschlages (l5):
+	l3 l1 - 2 / trunc s5
+'3.B.8 Schreiben:
+			0
+			(L.L.Matrix_Xpos) l5 +
+			(L.L.Matrix_Ypos) l2 +
+			l0
+			2
+			l7
+			(L.$.Matrix_TerminusL1)
+			(M.V.STTextOut)
+
+	
+
+
+'3.C.1 Bestimmen des Fonts der Zeile 2 des Ziels (l0/l1):
+		l4 ! {if}
+			7 s7
+			(L.$.Matrix_TerminusL2) (L.L.Font_7x7) s0 (M.V.TextLength) s1
+			l3 >
+			{if}
+				6 s7
+				(L.$.Matrix_TerminusL2) (L.L.Font_7x6) s0 (M.V.TextLength) s1
+				l3 >
+				{if}
+					5 s7
+					(L.$.Matrix_TerminusL2) (L.L.Font_7x5) s0 (M.V.TextLength) s1
+					l3 >
+					{if}
+						4 s7
+						(L.$.Matrix_TerminusL2) (L.L.Font_7x4) s0 (M.V.TextLength) s1
+					{endif}
+				{endif}
+			{endif}
+
+'3.C.2 Berechnen des Sperrpixelfaktors: (Anzahl der Buchstaben, l6)
+	(L.$.Matrix_TerminusL2) $length 1 - 0 max s6
+'3.C.3 Berechnen der Sperrung:
+	l3 l1 - l6 / trunc l7 min s7
+	l1 l6 l7 * + s1
+'3.C.4 Berechnen des Zentrierungsaufschlages (l5):
+	l3 l1 - 2 / trunc s5
+'3.C.5 Schreiben:
+			0
+			(L.L.Matrix_Xpos) l5 +
+			(L.L.Matrix_Ypos) 9 +
+			l0
+			2
+			l7
+			(L.$.Matrix_TerminusL2)
+			(M.V.STTextOut)
+
+
+		{endif}
+{end}
+
+{macro:matrix_refreshIntIndex}
+	(L.L.matrix_steckschild_Termindex) s0 0 >=
+	l0 0 (M.V.GetTerminusString) "" $= ! &&
+	{if}
+		l0
+	{else}
+		(L.L.Matrix_TerminusAct)
+	{endif}
+    (S.L.target_index_int)
+{end}

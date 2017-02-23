@@ -1,0 +1,131 @@
+'##############
+'Ticketprinter-Script
+'##############
+
+'Simulates ticket printer
+
+'(c) 12.01.2010 Rüdiger Hülsmann
+'(c) 22.06.2011 Markus Rabe
+
+'Script Version: 1.0
+'Omsi release: 1.0
+
+'Needs:
+'- none
+
+
+'Revision History:
+'- Rüdiger Hülsmann	12.01.2011	File created
+'- Rüdiger Hülsmann	15.01.2011	Functions added
+'- Markus Rabe		22.06.2011	Anzeige von Uhrzeit und Haltestelle
+'- ?			?		Korrektur 19 pf => 20 pf
+
+'----------------------
+'	Init
+'----------------------
+
+{macro:ticketprinter_init}
+	-1 (S.L.ticketprinter_ticket_preselection) (S.L.ticketprinter_ticket_selection)
+	"" (S.$.ticketprinter_display)
+{end}
+
+
+'----------------------
+'	Frame
+'----------------------
+
+{macro:ticketprinter_frame}
+
+'Anzeige des Fahrscheins aufm Display
+
+(L.L.elec_busbar_main)
+{if}
+	(L.L.ticketprinter_druckt)
+	{if}
+		"Druckt..." 22 $SetLengthL
+	{else}
+		(L.L.ticketprinter_ticket_preselection) 0 >=
+		(L.L.ticketprinter_ticket_preselection) 4 <= &&
+		{if}	
+			(L.L.ticketprinter_ticket_preselection) (M.V.GetTicketName) " :" $+
+			(L.L.ticketprinter_ticket_preselection) (M.V.GetTicketValue) s0
+
+'			Mark:
+			l0 " 2" $IntToStrEnh $+ "." $+
+
+'			Pfennige:	
+			l0 100 * 100 % 0.1 + "02" $IntToStrEnh $+
+			
+		{else}
+			(L.L.ticketprinter_ticket_preselection) 0 <
+			{if}
+				(L.S.Time) 3600 / s0 trunc s1 "02" $IntToStrEnh ":" $+
+				l0 l1 - 60 * trunc "02" $IntToStrEnh $+
+				" " $+
+				(L.L.IBIS_Route) 0 = !
+				{if}
+					(L.$.Haltestelle) $+
+				{endif}
+			{else}
+'				Hier hardcodiert die restlichen unverkäuflichen Fahrscheine
+				(L.L.ticketprinter_ticket_preselection) 5 =
+				{if}
+					"KuDamm-Ticket  : 1.00"
+				{else}
+					(L.L.ticketprinter_ticket_preselection) 6 =
+					{if}
+						"Tageskarte Erm : 5.00"
+					{else}
+						(L.L.ticketprinter_ticket_preselection) 7 =
+						{if}
+							"Komb-Tageskarte:15.00"
+						{else}
+							(L.L.ticketprinter_ticket_preselection) 8 =
+							{if}
+								"Tageskarte Fam :10.00"
+							{else}
+								(L.L.ticketprinter_ticket_preselection) 9 =
+								{if}
+									"Komb-Tagesk Erm: 7.00"
+								{endif}
+							{endif}
+						{endif}
+					{endif}
+				{endif}
+			{endif}
+		{endif}
+	{endif}
+	22 $SetLengthL
+{else}
+	"" 22 $SetLengthL
+{endif}
+
+(S.$.ticketprinter_display)
+
+
+'Ausgeben des Fahrscheins
+
+(L.L.ticketprinter_druckt)
+{if}
+	(L.L.ticketprinter_ticket_pos) (L.S.Timegap) 1 * + (S.L.ticketprinter_ticket_pos)
+	1 >
+	{if}
+		1 (S.L.ticketprinter_ticket_pos)
+		0 (S.L.ticketprinter_druckt)
+		(L.L.ticketprinter_ticket_selection) (S.L.GivenTicket)
+	{endif}
+{endif}
+
+(L.L.ticketprinter_ticket_visible)
+(L.L.ticketprinter_druckt) ! &&
+(L.L.GivenTicket) 0 < &&
+{if}
+	0 (S.L.ticketprinter_ticket_pos)
+	-1 (S.L.ticketprinter_ticket_selection) 
+	(T.L.ev_ticketsale_giveticket)
+{endif}
+
+(L.L.ticketprinter_druckt) (L.L.GivenTicket) 0 >= || (S.L.ticketprinter_ticket_visible)
+
+
+{end}

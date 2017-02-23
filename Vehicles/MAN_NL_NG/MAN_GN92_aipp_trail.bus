@@ -1,0 +1,204 @@
+	Programmiersprache funktioniert wie folgt: Man kann reinschreiben, was man will, das Programm ignoriert
+	alles AUßER die Schlüsselwörter wie [mesh], wenn sie am Anfang der Zeile stehen! Die Schlüsselwörter müssen
+	außerdem alleine in ihrer Zeile stehen, nur dann werden sie erkannt. Ist dem so, werden die entsprechenden folgenden Zeilen
+	ausgelesen, um die Parameter zu finden, d.h. diese müssen dann direkt im Anschluss und zeilenweise alleine folgen! Wurde
+	die Anzahl der Zeilen abgearbeitet, sucht das Programm wieder nach Schlüsselwörtern.
+
+	Im Allgemeinen spielt die Reihenfolge keine Rolle, außer bei der Beschreibung von Arrays, wie den Gängen oder den Meshs.
+
+	Es folgt nun der SD200 von Rüdiger H. aus B.:
+
+	[friendlyname]
+MAN
+-AI-Only- NG272 - GN92 - AI++ (Trailer)
+Beige
+
+[model]
+model\model_GN92_aipp_trail.cfg
+
+[sound]
+sound\sound_GN92_aipp_trail.cfg
+
+[sound_ai]
+sound\sound_GN92_aipp_trail_ai.cfg
+
+	This command shares the script system. That means that THIS vehicle
+	will use the entire script system of the previous created vehicle
+	(it is not important, if this is coupled in front or in the back,
+	this only depends on which vehicle was create before THIS one)
+
+[scriptshare]
+
+[paths]
+model\paths_GN92_aipp_trail.cfg
+
+[passengercabin]
+model\passengercabin_GN92_aipp_trail.cfg
+
+	////////////////////////////////////////////////////////
+		Scripts
+	////////////////////////////////////////////////////////
+
+[varnamelist]
+24
+script\aipp\ai_varlist_aipp.txt
+script\aipp\collision_varlist_aipp.txt
+script\aipp\antrieb_varlist_aipp.txt
+script\aipp\engine_varlist_aipp.txt
+script\aipp\elec_varlist_aipp.txt
+script\aipp\bremse_varlist_gn92_aipp.txt
+script\aipp\auspuff_varlist_aipp.txt
+script\aipp\lights_varlist_aipp.txt
+script\aipp\door_varlist_aipp.txt
+script\aipp\wiper_varlist_aipp.txt
+script\aipp\cockpit_varlist_aipp.txt
+script\aipp\klappern_varlist_aipp.txt
+script\aipp\heizung_varlist_aipp.txt
+script\aipp\rain_varlist_aipp.txt
+script\aipp\dirt_varlist_aipp.txt
+script\aipp\ibis_varlist_aipp.txt
+script\aipp\vmatrix_varlist_aipp.txt
+script\aipp\wimpel_varlist_aipp.txt
+script\aipp\visual_varlist_aipp.txt
+script\aipp\cashdesk_varlist_aipp.txt
+script\aipp\ticketprinter_varlist_aipp.txt
+script\aipp\articulation_varlist_aipp.txt
+script\aipp\ramplift_varlist_aipp.txt
+script\aipp\spray_varlist_aipp.txt
+
+[stringvarnamelist]
+5
+script\aipp\ai_stringvarlist_aipp.txt
+script\aipp\ibis_stringvarlist_aipp.txt
+script\aipp\vmatrix_stringvarlist_aipp.txt
+script\aipp\ticketprinter_stringvarlist_aipp.txt
+script\aipp\cockpit_stringvarlist_aipp.txt
+
+################
+Passagiersichten
+################
+
+	0: Hinten mittig sitzend
+[add_camera_pax]
+0.0
+-3.3
+2.3
+-0.06
+45
+0
+0
+
+	1: Stehplatz an der Hintertür
+[add_camera_pax]
+-0.3
+0.5
+2.2
+-0.06
+45
+90
+0
+
+	Folgender Befehl setzt den Zentrierpunkt der Außenkamera:
+
+[set_camera_outside_center]
+0
+0
+1.2
+
+	////////////////////////////////////////////////////////
+		Physikalische und geometrische Grunddaten
+	////////////////////////////////////////////////////////
+
+	Masse in t:
+[mass]
+7.2
+
+	Trägheitsmomente um x, y und z-Achse, also Quer-, Längs- und Hochachse um den Schwerpunkt in dieser Reihenfolge in t*m^2:
+500
+200
+500
+
+[momentofintertia]
+150
+40
+150
+
+[boundingbox]
+2.472
+7.213
+2.491
+0
+0.074
+1.622
+
+	Höhe d. Schwerpunktes überm Boden:
+
+[schwerpunkt]
+1.2
+
+	Rollwiderstand (konstant, wird demnächst eventuell geändert) als Kraft in N
+[rollwiderstand]
+500
+
+	Längskoordinate des Drehpunktes, wenn der Bus eine Kurve beschreibt:
+[rot_pnt_long]
+-0.387
+
+	Kehrwert des minimalen Lenkradiuses: (Berechenbar über die Formel: inv_turnradius = tan(alpha)/s,
+	wobei alpha der maximale Winkel bspw. der Vorderachse und s deren Abstand zum Drehpunkt in Längsrichtung ist:
+
+	Folgende Sektion erzeugt nacheinander die Busachsen mit ihren Parametern. ACHTUNG: bei einem Fahrzeug mit
+	unterschiedlich großen Rädern sollte zunächst die angetriebene Achse eingegeben werden, da die zuerst ein-
+	gegebene Achse den Antriebsraddurchmesser vorgibt, d.h. das Getriebeübersetzungsverhältnis zur Ge-
+	schwindigkeit ist in Bezug auf die 0. Achse gemessen.
+[ai_deltaheight]
+-0.10
+
+	Hinterachse:
+[newachse]
+
+achse_long
+-0.387
+
+achse_maxwidth
+2.4
+
+achse_minwidth
+1.2
+
+achse_raddurchmesser
+0.94
+
+achse_feder
+280
+
+achse_maxforce
+116
+
+achse_daempfer
+20
+
+achse_antrieb
+1
+
+[coupling_front]
+0
+4.169
+0.315
+
+Dieser Befehl sorgt dafür, dass in diesem Fahrzeug auch den Sound vom angekuppelten Fahrzeug wie "von innen" gehört wird (und umgekehrt).
+
+[couple_front_open_for_sound]
+
+	[coupling_front_character] describes the character of the front coupling:
+	{min/max-alpha (degree)}
+	{min-beta (degree)} ("down")
+	{max-beta (degree)} ("up")
+	{type}		0: Truck (three degrees of freedom)
+			1: Bus (two degrees of freedom)
+
+[coupling_front_character]
+52.5
+-20
+20
+1

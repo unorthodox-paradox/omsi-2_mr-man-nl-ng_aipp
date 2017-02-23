@@ -1,0 +1,741 @@
+'##############
+'Cockpit-Script
+'##############
+
+'Simuliert alle unmittelbar mit dem Armaturenbrett zusammenhängenden Funktionen
+
+'(c) 23.10.2009 Rüdiger Hülsmann
+'(c) 03.11.2012 Marcel Kuhnt
+'(c) 27.02.2011 Markus Rabe
+
+'Script Version: 1.0
+'Omsi release: 1.0
+
+'Needs:
+'- antrieb
+'- engine
+'- bremse
+'- lights
+'- wiper?
+'- doors
+
+'NrSpecRandom Seed Area:
+'350...355
+
+'Revision History:
+'- Rüdiger Hülsmann	09.06.2009	Last Change				
+'- Marcel Kuhnt		13.06.2009	Added Gearbox switches			
+'- Marcel Kuhnt		13.06.2009	Moved some switchvars to other scripts	
+'- Rüdiger Hülsmann	19.06.2009	Added Openable Window Triggers
+'- Rüdiger Hülsmann	23.10.2009	Added Battery and kinderwagen light
+'- Marcel Kuhnt		26.10.2009	Radio switchable with Motorkühlung (replaced with cassette player)
+'- Rüdiger Hülsmann	28.10.2009	Added driver door
+'- Rüdiger Hülsmann	16.12.2009	Added driver curtain
+'- Rüdiger Hülsmann	18.12.2009	Bugfix driver curtain
+'- Marcel Kuhnt		15.04.2010	Traegheit debugged
+'- Rüdiger Hülsmann	13.05.2010	Engine temperature
+'- Rüdiger Hülsmann	03.06.2010	Automatic battery switch on key insertion (For standard-II-buses)
+'- Rüdiger Hülsmann	08.06.2010	Automatic battery switch made optional, Auxiliary heating switchable by button or switch
+'- Rüdiger Hülsmann	23.06.2010	Added mouse-clickable wiper lever on wheel console
+'- Rüdiger Hülsmann	08.07.2010	Wiper lever: Improved usability 
+'- Rüdiger Hülsmann	18.07.2010	Wiper lever: soundfix for keyboard operation and new ignition key algorithm 
+'- Rüdiger Hülsmann	16.09.2010	Auxheat Switch Bugfix
+'- Rüdiger Hülsmann	18.09.2010	Imported microphone switch
+'- Rüdiger Hülsmann	17.10.2010	Added pressure warning needle
+'- Rüdiger Hülsmann	23.10.2010	Added old-style gear button functionality
+'- Rüdiger Hülsmann	06.11.2010	Gear-button "1" functionality removed for old-style gear buttons
+'- Rüdiger Hülsmann	16.11.2010	Heating sliders
+'- Rüdiger Hülsmann	23.11.2010	Central lubrication, cabin heater sound
+'- Rüdiger Hülsmann	23.12.2010	Included 10 "multi-purpose" dummy switches
+'- Rüdiger Hülsmann	29.12.2010	ASR switch
+'- Rüdiger Hülsmann	04.01.2011	"D-only" gear selector function
+'- Rüdiger Hülsmann	05.01.2011	fog lamp switch, high beam lever animation, clock debugged
+'- Rüdiger Hülsmann	07.01.2011	Wiper lever sound and function debugges, availybility of several cockpit functions depending on bus type (via constfile)
+'- Rüdiger Hülsmann	16.01.2011	Support for wiper turn-switch
+'- Rüdiger Hülsmann	18.01.2011	Old-style gear button sounds
+'- Rüdiger Hülsmann	26.01.2011	Invertable driver door
+'- Rüdiger Hülsmann	26.01.2011	Thermometer
+'- Markus Rabe		27.02.2011	Heizlüfter und Wagenheizung Motorabhängig, Leuchtmelder Hintertür an 80er D Wagen angepasst
+'- Marcel Kuhnt		25.06.2011	Nebelscheinwerfer-Schalter (cp_licht_nebelschw_sw)
+'- Marcel Kuhnt		29.06.2011	Türkontrolle für D92 und D86 integriert
+'- Marcel Kuhnt		22.06.2012	Uhr läuft nur, wenn Strom vorhanden
+'- Marcel Kuhnt		09.07.2012	Busbar wird als Faktor/Spannung interpretiert
+'- Marcel Kuhnt		25.07.2012	Stromverbrauch, Generierung von Leitwert
+'- Marcel Kuhnt		01.11.2012	Türentriegelungs-Leuchtmelder
+'- Marcel Kuhnt		02.11.2012	Türentriegelungs-Leuchtmelder für drei Türen
+'- Marcel Kuhnt		03.11.2012	Andere Klappfensterbezeichnungen und nur vier Stück
+'- Marcel Kuhnt		04.11.2012	Zweite Türkontrolle
+'- Marcel Kuhnt		22.03.2013	Hinzugefügt: Schalter Hublift & Knickschutz-Override
+'- Marcel Kuhnt		11.09.2013	Dachluken
+'- Marcel Kuhnt		12.09.2013	Added Fahrgastpendel
+'- Marcel Kuhnt		13.09.2013	Zwei Fahrgastpendel, die zufällige physikalische Eigenschaften haben
+'- Marcel Kuhnt		14.10.2013	Neues Heizgerät für NL/NG eingebaut, Klimator- und Wagenlüfter werden im Heizungs-Script simuliert
+'- Rüdiger Hülsmann	26.10.2013	Kneeling-Funktion
+'- Marcel Kuhnt		08.11.2013	Hublift-Masterschalter
+
+
+'------------------------------------------------------------------------------------------
+
+'----------------------
+'	Init
+'----------------------
+
+{macro:cockpit_init}
+	0 (S.L.cockpit_hupe_volume) (S.L.door_handsteuerung)
+	1 (S.L.cp_retarder_sw) (S.L.cp_lenkrad_visible) (S.L.cp_taster_warnblinker) (S.L.cockpit_wischer_drehschalter_mode) 
+
+	0.6 (S.L.cp_taster_warnblinker) (S.L.cp_taster_standheizung)
+
+	(C.L.cockpit_zentralschmierung_dist) random (S.L.cp_zentralschmierung_nextkm)
+
+	0.333 (S.L.cockpit_wischer_drehschalter)
+
+
+	350 (M.V.NrSpecRandom) 5 * 7.5 + (S.L.cp_Fahrgastpendel_traeg)
+	351 (M.V.NrSpecRandom) 5 * 7.5 + (S.L.cp_Fahrgastpendel_2_traeg)
+	352 (M.V.NrSpecRandom) 0.8 * 0.1 + (S.L.cp_Fahrgastpendel_reib)
+	353 (M.V.NrSpecRandom) 0.8 * 0.1 + (S.L.cp_Fahrgastpendel_2_reib)
+	354 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_refl)
+	355 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_2_refl)
+	
+{end}
+
+'----------------------
+'	Frame
+'----------------------
+{macro:cockpit_frame_ai}
+    (L.L.cp_wischer_schnell_sw) (S.L.wiper_schnell_sw)
+	(L.L.cp_wischer_einaus_sw) (S.L.wiper_einaus_sw)
+	(L.L.cp_wischer_intervall_sw) (S.L.wiper_intervall_sw)
+    (L.L.cp_wischer_intervall_sw)
+    {if}
+        0.085
+    {else}
+        (L.L.cp_wischer_schnell_sw)
+        {if}
+            0.915
+        {else}
+            (L.L.cp_wischer_einaus_sw)
+            {if}
+                0.665
+            {else}
+                0.335
+            {endif}
+        {endif}
+    {endif}
+    (S.L.cockpit_wischer_drehschalter)
+{end}
+
+{macro:cockpit_frame}
+'Übertragen der Schalterstellungen:
+	(L.L.cp_retarder_sw) (S.L.antrieb_retarder_sw)
+	(L.L.cp_retarder_sw_direkt) (S.L.antrieb_retarder_sw_direkt)
+	(L.L.cp_wischer_schnell_sw) (S.L.wiper_schnell_sw)
+	(L.L.cp_wischer_einaus_sw) (S.L.wiper_einaus_sw)
+	(L.L.cp_wischer_intervall_sw) (S.L.wiper_intervall_sw)
+	(L.L.cp_wischer_wascher_sw) (S.L.wiper_wascher_sw)
+    (L.L.cp_wischer_intervall_sw)
+    {if}
+        0.085
+    {else}
+        (L.L.cp_wischer_schnell_sw)
+        {if}
+            0.915
+        {else}
+            (L.L.cp_wischer_einaus_sw)
+            {if}
+                0.665
+            {else}
+                0.335
+            {endif}
+        {endif}
+    {endif}
+    (S.L.cockpit_wischer_drehschalter)
+
+	(M.L.tacho_frame)
+	(M.L.uhr_frame)
+	(M.L.drehzahlmesser_frame)
+	(M.L.blinkerhebel_frame)
+	(M.L.wischerhebel_frame)
+	(M.L.wischer_drehschalter_frame)
+	(M.L.oeldruck_frame)
+	(M.L.tankuhr_frame)
+	(M.L.cockpitlights_frame)
+	(M.L.schluessel_frame)
+	(M.L.odometer_frame)
+	(M.L.engine_thermometer_frame)
+	(M.L.pressure_warning_needle_frame)
+	(M.L.zentralschmierung_frame)
+	(M.L.Thermometer_frame)
+	(M.L.Fahrgastpendel)
+{end}
+
+{macro:tacho_frame}
+	(L.L.Velocity) (F.L.cockpit_tacholinie) (S.L.cockpit_tachowinkel)
+{end}
+
+{macro:uhr_frame}
+	(L.L.elec_busbar_avail) 0.5 >
+	{if}
+		(L.S.Time) s0 60 / (S.L.cockpit_uhr_min) 12 / (S.L.cockpit_uhr_std)
+		l0 trunc (S.L.cockpit_uhr_sek)
+	{endif}
+{end} 
+
+{macro:drehzahlmesser_frame}
+	(L.L.engine_n) 3000 270 / / (S.L.cockpit_drehzahlwinkel)
+{end}
+
+{macro:blinkerhebel_frame}
+	(L.L.lights_sw_blinker) 1 =
+	{if}	
+		-1 (S.L.cockpit_blinkerhebel)
+	{else}
+		(L.L.lights_sw_blinker) 2 =
+		{if}
+			1 (S.L.cockpit_blinkerhebel)
+		{else}
+			0 (S.L.cockpit_blinkerhebel)
+		{endif}
+	{endif}
+
+'	Hebel-Animation für Fernlicht
+	(L.L.lights_sw_fern)
+	{if}	
+		(L.L.cockpit_fernlichthebel) -1 = !
+		{if}
+			1 (S.L.cockpit_fernlichthebel)
+		{endif}
+
+		(L.L.cp_schluessel_rot) 0.8 >
+		{if}
+			-1 (S.L.cockpit_fernlichthebel)
+		{endif}
+	{else}
+		0 (S.L.cockpit_fernlichthebel)
+	{endif}
+
+
+{end}
+
+{macro:wischerhebel_frame}
+
+	(L.L.cockpit_wischerhebel_lastmode) (L.L.cockpit_wischerhebel_mode) = !
+	{if}
+		(T.L.ev_wischerhebel)
+	{endif}
+	(L.L.cockpit_wischerhebel_mode) (S.L.cockpit_wischerhebel_lastmode)
+{end}
+
+{macro:wischer_drehschalter_frame}
+
+	(L.L.cockpit_wischer_drehschalter_lastmode) (L.L.cockpit_wischer_drehschalter_mode) = !
+	{if}
+		(T.L.ev_wischerhebel)
+	{endif}
+	(L.L.cockpit_wischer_drehschalter_mode) (S.L.cockpit_wischer_drehschalter_lastmode)
+{end}
+
+
+
+{macro:cockpitlights_frame}
+
+'	Störungsmelder
+	(L.L.engine_n) 100 <
+	(L.L.bremse_p_tank01) 650000 < ||
+	(L.L.bremse_p_tank02) 650000 < ||
+	(L.L.bremse_p_tank03) 650000 < ||
+	(L.L.elec_busbar_main) *
+	(S.L.cockpit_light_masterfailure)
+
+'	Batterie
+	(L.L.elec_ladekontrolle) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_batterie)
+
+'	Türkontrolle
+	(C.L.cockpit_aftdoorlight_condition_D92)
+	{if}
+		(L.L.door_2) 0 = 
+		(L.L.door_3) 0 = && !
+	{else}
+		(L.L.door_2) 0.11 > 
+		(L.L.door_3) 0.11 > ||
+		(L.L.doorTarget_23) ||
+	{endif}
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(S.L.cockpit_light_tuerkontrolle)
+
+'	Türkontrolle 2
+	(C.L.cockpit_aftdoorlight_condition_D92)
+	{if}
+		(L.L.door_4) 0 = 
+		(L.L.door_5) 0 = && !
+	{else}
+		(L.L.door_4) 0.11 > 
+		(L.L.door_5) 0.11 > ||
+		(L.L.doorTarget_45) ||
+	{endif}
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > &&
+	(S.L.cockpit_light_tuerkontrolle_2)
+
+	(L.L.doorEntriegelung_E_active_01)
+	(L.L.doorEntriegelung_E_active_23) ||
+	(L.L.doorEntriegelung_E_active_45) ||
+	(L.L.elec_busbar_main) *
+	(S.L.cockpit_light_tuerentriegelung)
+
+'	Kontrolle Feststellbremse
+	(L.L.bremse_p_Brzyl_FBA) 650000 <
+	(L.L.elec_busbar_main) *
+	(S.L.cockpit_light_feststellbremse)
+
+'	Geschwindigkeitswarnung
+	(L.L.Velocity) 54 > (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_speedwarning)
+	
+'	Kinderwagenwunsch
+	(L.L.door_kinderwagenwunsch) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_kinderwagenwunsch)
+
+'	Kippschalter-Beleuchtung
+	(L.L.cp_retarder_sw_direkt) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_retarder_direkt)
+
+	(L.L.cp_retarder_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_retarder)
+
+	(L.L.cp_fahrerlicht_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_fahrerlicht)
+
+	(L.L.cp_licht_untenrechts_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_licht_untenrechts)
+
+	(L.L.cp_licht_unterdeck_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_licht_unterdeck)
+
+'	(L.L.cp_licht_oberdeck_sw) (L.L.elec_busbar_main) *
+'	(S.L.cockpit_light_licht_oberdeck)
+
+	(L.L.cp_wischer_schnell_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_wischer_schnell)
+
+	(L.L.cp_wischer_einaus_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_wischer_einaus)
+
+	(L.L.cp_wischer_intervall_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_wischer_intervall)
+	
+	(L.L.cp_wischer_wascher_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_wischer_wascher)
+
+	(L.L.cp_heizluefter_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_heizluefter)
+	
+	(L.L.cp_spiegelheizung_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_spiegelheizung)
+
+	(L.L.cp_motorkuehlung_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_motorkuehlung)
+
+	(L.L.door_handsteuerung) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_tuer_handsteuerung)
+
+	(L.L.cp_ASR_off) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_ASR_off)
+
+	(L.L.cp_hub_up_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_hub_up)
+
+	(L.L.cp_hub_dn_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_hub_dn)
+
+	(L.L.cp_knick_ovrd_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_knick_ovrd)
+
+	(L.L.cp_kneeling_sw) (L.L.elec_busbar_main) *
+	(S.L.cockpit_light_kneeling_sw)
+
+
+'	Dummy-Schalter:
+
+	(L.L.cp_dummy_sw01) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func01)
+
+	(L.L.cp_dummy_sw02) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func02)
+
+	(L.L.cp_dummy_sw03) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func03)
+
+	(L.L.cp_dummy_sw04) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func04)
+
+	(L.L.cp_dummy_sw05) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func05)
+
+	(L.L.cp_dummy_sw06) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func06)
+
+	(L.L.cp_dummy_sw07) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func07)
+
+	(L.L.cp_dummy_sw08) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func08)
+
+	(L.L.cp_dummy_sw09) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func09)
+
+	(L.L.cp_dummy_sw10) (L.L.elec_busbar_main) *
+	(S.L.cp_dummy_func10)
+
+
+'	Meldelampen für Kneeling und ECAS
+	
+'	Selftest: Beim Einschalten der Elektrik leuchten Melde- und Störlampe kurz auf, daher zwei Timer laufen lassen:
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+	{if}
+		(L.L.cockpit_light_kneeling_timer) (L.S.Timegap) + (S.L.cockpit_light_kneeling_timer)
+		(L.L.cockpit_light_kneeling_failure_timer) (L.S.Timegap) + (S.L.cockpit_light_kneeling_failure_timer)	
+	{else}
+		0 (S.L.cockpit_light_kneeling_failure_timer) (S.L.cockpit_light_kneeling_timer)		
+	{endif}
+
+'	Bedingungen fürs Leuchten:
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+	(L.L.cockpit_light_kneeling_failure_timer) (C.L.cockpit_light_kneeling_failure_selftesttime) < &&
+	(S.L.cockpit_light_kneeling_failure)
+
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+	(L.L.cockpit_light_kneeling_timer) (C.L.cockpit_light_kneeling_selftesttime) <
+	(L.L.bremse_kneeling) ||
+	(L.L.bremse_p_Tank04) 750000 < (L.S.GetTime) 1 % 0.5 < && || &&
+	(S.L.cockpit_light_kneeling)
+	
+
+{end}
+
+{macro:oeldruck_frame}
+	(L.L.engine_n) (F.L.cockpit_oeldruck) (L.L.elec_busbar_main) * s0
+
+	(L.L.cockpit_oeldruck) s1
+	5 s2
+	5 s3
+	(M.L.traegheit)	
+	l1 (S.L.cockpit_oeldruck)
+{end}
+
+{macro:tankuhr_frame}
+	(L.L.engine_tank_content) (L.L.elec_busbar_main) * s0
+
+	(L.L.cockpit_tankuhr) s1
+	5 s2
+	5 s3
+	(M.L.traegheit)	
+	l1 (S.L.cockpit_tankuhr)
+{end}
+
+{macro:engine_thermometer_frame}
+	(L.L.engine_temperature) (F.L.cockpit_engine_temperature) (L.L.elec_busbar_main) * s0
+
+	(L.L.cockpit_motortemperaturwinkel) s1
+	5 s2
+	5 s3
+	(M.L.traegheit)	
+	l1 (S.L.cockpit_motortemperaturwinkel)
+{end}
+
+{macro:kippschaltersound}
+	l1
+	{if}
+		(T.L.ev_kippschalter_ein)
+	{else}
+		(T.L.ev_kippschalter_aus)
+	{endif}	
+{end}
+
+{macro:klappfenstersound}
+	l1
+	{if}
+		(T.L.ev_klappfenster_opn)
+	{else}
+		(T.L.ev_klappfenster_cls)
+	{endif}	
+{end}
+
+{macro:klappfenstersound_T}
+	l1
+	{if}
+		(T.L.ev_klappfenster_opn_T)
+	{else}
+		(T.L.ev_klappfenster_cls_T)
+	{endif}	
+{end}
+
+
+
+
+
+{macro:schluessel_frame}
+
+	(L.L.cp_schluessel_trans_lastmode) (L.L.cp_schluessel_trans_mode) = !
+	{if}
+		(T.L.ev_schluessel_steck)
+	{endif}
+	(L.L.cp_schluessel_trans_mode) (S.L.cp_schluessel_trans_lastmode)
+
+
+	(L.L.cp_schluessel_rot_lastmode) (L.L.cp_schluessel_rot_mode) = !
+	{if}
+		(T.L.ev_schluessel_dreh)
+	{endif}
+	(L.L.cp_schluessel_rot_mode) (S.L.cp_schluessel_rot_lastmode)
+{end}
+
+
+
+{macro:traegheit}
+
+'Simuliert träges Verhalten (exponentiell)
+
+'Ladekonventionen:
+'	Sollwert		l0
+'	Istwert			l1
+'	Konstante Anlauf	l2 (Einheiten/s)
+'	Konstante Ablauf	l3 (Einheiten/s)
+
+'Anlauf oder Auslauf?
+	l0 l1 > 
+	{if}
+		l2 (L.S.Timegap) * 1 min -1 max s4
+	{else}
+		l3 (L.S.Timegap) * 1 min -1 max s4
+	{endif}
+
+
+'Sollwert:
+	l0
+'Istwert:
+	l1
+'Beschleunigung:
+	- l4 *
+'Addition zum Istwert:
+	l1 + s1
+{end}
+
+
+{macro:odometer_frame}
+	(L.L.kmcounter_km) (L.L.kmcounter_m) 1000 / + 10 *
+	(S.L.cp_odometer_01)
+
+	(L.L.cp_odometer_01) 10 / trunc 
+	(L.L.cp_odometer_01) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_1)
+
+	(L.L.cp_odometer_1) 10 / trunc 
+	(L.L.cp_odometer_1) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_10)
+
+	(L.L.cp_odometer_10) 10 / trunc 
+	(L.L.cp_odometer_10) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_100)
+
+	(L.L.cp_odometer_100) 10 / trunc 
+	(L.L.cp_odometer_100) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_1000)
+
+	(L.L.cp_odometer_1000) 10 / trunc 
+	(L.L.cp_odometer_1000) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_10000)
+
+	(L.L.cp_odometer_10000) 10 / trunc 
+	(L.L.cp_odometer_10000) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
+	(S.L.cp_odometer_100000)
+
+
+	(L.L.kmcounter_m) 100 / (S.L.cp_odometer_01)
+{end}
+
+{macro:pressure_warning_needle_frame}
+
+	(L.L.bremse_p_Tank01) (L.L.bremse_p_Tank02) + 2 / (S.L.cockpit_warndruck) (F.L.cockpit_warndruck) (S.L.cockpit_warndruckwinkel)
+
+{end}
+
+{macro:zentralschmierung_frame}
+
+	(L.L.cp_zentralschmierung_nextkm) (L.L.velocity) 3600 / (L.S.Timegap) * + (S.L.cp_zentralschmierung_nextkm)
+	(C.L.cockpit_zentralschmierung_dist) >
+	(L.L.cp_zentralschmierung_runtime) (C.L.cockpit_zentralschmierung_maxtime) < &&
+	{if}
+		1 (S.L.cockpit_light_zentralschmierung)
+		(L.L.cp_zentralschmierung_runtime) (L.S.Timegap) + (S.L.cp_zentralschmierung_runtime)
+	{else}
+		(L.L.cockpit_light_zentralschmierung)
+		{if}
+			0 (S.L.cp_zentralschmierung_nextkm)
+		{endif}
+		0 (S.L.cockpit_light_zentralschmierung) (S.L.cp_zentralschmierung_runtime)
+	{endif}	
+
+{end}
+
+{macro:Thermometer_frame}
+
+	(L.L.Cabinair_Temp) s0 trunc " 3" $IntToStrEnh "." $+ 
+	l0 abs l0 abs trunc - 10 * trunc " 1" $IntToStrEnh $+ "C" $+
+	(S.$.cockpit_temperatur)
+{end}
+
+{macro:Fahrgastpendel}
+'Sollwert: (wenn mindestens ein Typ an der Stelle durchgeht)
+	3 (M.V.GetHumanCountOnPathLink) 1 min s4
+
+'Wenn ein Fahrgast durchwill, dann überschreibe die "Drag"-Eigenschaft:
+	l4 {if} 0 (S.L.cp_Fahrgastpendel_drag) (S.L.cp_Fahrgastpendel_2_drag) {endif}
+
+'1:====================================
+
+'Differenz * InvTrägheit = Beschleunigung
+	l4 (L.L.cp_Fahrgastpendel_Pos) - (L.L.cp_Fahrgastpendel_traeg) * s1
+
+	(L.L.cp_Fahrgastpendel_drag) !
+	{if}
+
+'Anwendung einer Reibungskraft:
+		l1 (L.L.cp_Fahrgastpendel_Speed) sgn (L.L.cp_Fahrgastpendel_reib) * - s0
+'Prüfen, ob sich die Beschleunigung infolge der Reibung umkehrt - dann wird sie auf 0 gesetzt:
+		l0 l1 * 0 < {if} 0 s0 {endif}
+'Anwenden der Beschleunigung:
+		(L.L.cp_Fahrgastpendel_Speed) l0 (L.S.Timegap) * + (S.L.cp_Fahrgastpendel_Speed)
+'Anwenden der Position:
+		(L.L.cp_Fahrgastpendel_Pos) (L.L.cp_Fahrgastpendel_Speed) (L.S.Timegap) * + (S.L.cp_Fahrgastpendel_Pos) s0
+	{else}
+		(L.L.cp_Fahrgastpendel_Pos) s0
+	{endif}
+
+
+'Limits: (Anschlag an Haltestange mit 10% Abprallstärke)
+	l0 0 <
+	{if}
+		0 (S.L.cp_Fahrgastpendel_Pos)
+		(T.L.ev_fahrgastpendel_zu)
+		(L.L.cp_Fahrgastpendel_Speed) (L.L.cp_Fahrgastpendel_refl) * (S.L.cp_Fahrgastpendel_Speed)
+	{endif}
+'(anderes Ende ohne Reflexion)
+	l0 1 >
+	{if}
+		1 (S.L.cp_Fahrgastpendel_Pos)
+		0 (S.L.cp_Fahrgastpendel_Speed)
+	{endif}
+
+'2:====================================
+
+'Differenz * InvTrägheit = Beschleunigung
+	l4 (L.L.cp_Fahrgastpendel_2_Pos) - (L.L.cp_Fahrgastpendel_2_traeg) * s1
+
+	(L.L.cp_Fahrgastpendel_2_drag) !
+	{if}
+
+'Anwendung einer Reibungskraft:
+		l1 (L.L.cp_Fahrgastpendel_2_Speed) sgn (L.L.cp_Fahrgastpendel_2_reib) * - s0
+'Prüfen, ob sich die Beschleunigung infolge der Reibung umkehrt - dann wird sie auf 0 gesetzt:
+		l0 l1 * 0 < {if} 0 s0 {endif}
+'Anwenden der Beschleunigung:
+		(L.L.cp_Fahrgastpendel_2_Speed) l0 (L.S.Timegap) * + (S.L.cp_Fahrgastpendel_2_Speed)
+'Anwenden der Position:
+		(L.L.cp_Fahrgastpendel_2_Pos) (L.L.cp_Fahrgastpendel_2_Speed) (L.S.Timegap) * + (S.L.cp_Fahrgastpendel_2_Pos) s0
+	{else}
+		(L.L.cp_Fahrgastpendel_2_Pos) s0
+	{endif}
+
+
+'Limits: (Anschlag an Haltestange mit 10% Abprallstärke)
+	l0 0 <
+	{if}
+		0 (S.L.cp_Fahrgastpendel_2_Pos)
+		(T.L.ev_fahrgastpendel_2_zu)
+		(L.L.cp_Fahrgastpendel_2_Speed) (L.L.cp_Fahrgastpendel_2_refl) * (S.L.cp_Fahrgastpendel_2_Speed)
+	{endif}
+'(anderes Ende ohne Reflexion)
+	l0 1 >
+	{if}
+		1 (S.L.cp_Fahrgastpendel_2_Pos)
+		0 (S.L.cp_Fahrgastpendel_2_Speed)
+	{endif}
+
+{end}
+
+{macro:trg_cp_klappfenster_1}
+    l1 (S.L.cp_klappfenster_1)
+{end}
+
+{macro:trg_cp_klappfenster_2}
+    l1 (S.L.cp_klappfenster_2)
+{end}
+
+{macro:trg_cp_klappfenster_3}
+	l1 (S.L.cp_klappfenster_3)
+{end}
+
+{macro:trg_cp_klappfenster_4}
+	l1 (S.L.cp_klappfenster_4)
+{end}
+
+{macro:trg_cp_dachluke_1}
+	l1 (S.L.cp_dachluke_1) s0
+	(M.L.dachluke_pos_rot)
+	l1 (S.L.cp_dachluke_1_pos)
+	l2 (S.L.cp_dachluke_1_rot)
+	l3 (S.L.cp_dachluke_1_S1)
+	l4 (S.L.cp_dachluke_1_S2)
+{end}
+
+{macro:trg_cp_dachluke_2}
+	l1 (S.L.cp_dachluke_2) s0
+	(M.L.dachluke_pos_rot)
+	l1 (S.L.cp_dachluke_2_pos)
+	l2 (S.L.cp_dachluke_2_rot)
+	l3 (S.L.cp_dachluke_2_S1)
+	l4 (S.L.cp_dachluke_2_S2)
+{end}
+
+{macro:trg_cp_dachluke_3}
+	l1 (S.L.cp_dachluke_3) s0
+	(M.L.dachluke_pos_rot)
+	l1 (S.L.cp_dachluke_3_pos)
+	l2 (S.L.cp_dachluke_3_rot)
+	l3 (S.L.cp_dachluke_3_S1)
+	l4 (S.L.cp_dachluke_3_S2)
+{end}
+
+{macro:dachluke_pos_rot}
+	l0 0.5 <=
+	{if}
+		0 s1 s2 s3 s4
+		(T.L.ev_dachluke_close)
+	{else}
+	l0 1.5 <=
+	{if}
+		0.5 s1
+		1 s2
+		0.80 s3
+		0.10 s4
+		(T.L.ev_dachluke_open)
+	{else}
+	l0 2.5 <=
+	{if}
+		1 s1
+		0 s2
+		1 s3
+		1 s4
+		(T.L.ev_dachluke_change)
+	{else}
+		0.5 s1
+		-1 s2
+		0.10 s3
+		0.80 s4
+		(T.L.ev_dachluke_change)
+	{endif}
+	{endif}
+	{endif}
+{end}

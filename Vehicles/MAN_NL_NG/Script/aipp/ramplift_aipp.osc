@@ -1,0 +1,215 @@
+'####################
+'Ramp & Lift Systems
+'####################
+
+'Simulates everything around the lift and ramp systems
+
+'(c) 22.03.2013 Marcel Kuhnt
+
+'Script Version: 1.0
+'Omsi release: 2.0
+
+'Needs:
+'- cockpit
+'- elec
+
+'Revision History:
+'- Marcel Kuhnt		22.03.2013	Created from scratch
+'- Marcel Kuhnt		08.11.2013	Ramp system added
+'------------------------------------------------------------------------------------------
+
+{macro:ramplift_init}
+	0 (S.L.lift_pos_x)
+	0 (S.L.lift_pos_z)
+	0 (S.L.lift_movemode)
+	0 (S.L.ramp_pos) (S.L.ramp_rot) (S.L.ramp_k1_rot) (S.L.ramp_k2_rot)
+{end}
+
+
+{macro:ramplift_frame}
+
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+	{if}
+'RAMPE ===================================================
+
+'Anforderung zurücknehmen:
+
+		(L.L.door_handsteuerung) !
+		(L.L.door_2) 0.1 < &&
+		(L.L.door_3) 0.1 < &&
+		{if}
+			0 (S.L.ramp_soll)
+		{endif}
+
+		0 s5
+		(L.L.ramp_soll) s0 (L.L.ramp_target) = !
+		{if}
+			l0 (S.L.ramp_target)
+			2 (S.L.ramp_timer)
+		{endif}
+
+		(L.L.ramp_target)
+		{if}
+			(L.L.ramp_pos) s0 1 <
+			{if}
+				(L.L.ramp_timer) s1 0 >
+				{if}
+					l1 (L.S.Timegap) - (S.L.ramp_timer)
+				{else}
+					l0 (L.S.timegap) (C.L.ramp_maxspeed) * + (S.L.ramp_pos)
+					1 >
+					{if}
+						1 (S.L.ramp_pos)
+					{endif}
+				{endif}
+				1 s5
+			{endif}
+		{else}
+			(L.L.ramp_pos) s0 0 >
+			{if}
+				(L.L.ramp_timer) s1 0 >
+				{if}
+					l1 (L.S.Timegap) - (S.L.ramp_timer)
+				{else}
+					l0 (L.S.timegap) (C.L.ramp_maxspeed) * - (S.L.ramp_pos)
+					0 <
+					{if}
+						0 (S.L.ramp_pos)
+					{endif}
+				{endif}
+				1 s5
+			{endif}			
+		{endif}
+
+'Rampenwarnung:
+		(L.L.ramp_warning_on) s0
+
+		l5
+		(L.S.GetTime) 0.48 % 0.24 < &&
+		(S.L.ramp_warning_on)
+
+		l0 ! &&
+		{if}
+			(T.L.ev_warning_rampe)
+		{endif}
+
+'HUBLIFT =================================================
+		(L.L.cp_hub_mstr_sw)
+		{if}
+			(L.L.cp_hub_dn_sw)
+			{if}
+				(L.L.lift_movemode) 0.5 <
+				{if}
+					(L.L.lift_pos_x) (L.S.Timegap) (C.L.lift_maxspeed_x) * + (S.L.lift_pos_x)
+					1 >
+					{if}
+						1 (S.L.lift_pos_x)
+					{endif}
+				{else}
+					(L.L.lift_pos_z) (L.S.Timegap) (C.L.lift_maxspeed_z) * + (S.L.lift_pos_z)
+				{endif}
+			{else}
+			(L.L.cp_hub_up_sw)
+			{if}
+				(L.L.lift_movemode) 1.5 <
+				{if}
+					(L.L.lift_pos_x) (L.S.Timegap) (C.L.lift_maxspeed_x) * - (S.L.lift_pos_x)
+					0 <
+					{if}
+						0 (S.L.lift_pos_x)
+					{endif}
+				{else}
+					(L.L.lift_pos_z) (L.S.Timegap) (C.L.lift_maxspeed_z) * - (S.L.lift_pos_z)
+					0 <
+					{if}
+						0 (S.L.lift_pos_z)
+					{endif}
+				{endif}
+			{else}
+'Move-Mode nur wechseln, wenn kein Taster gedrückt ist:
+
+				(L.L.lift_pos_z) 0 >
+				{if}
+					2 (S.L.lift_movemode)
+				{else}
+				(L.L.lift_pos_x) 1 >=
+				{if}
+					1 (S.L.lift_movemode)
+				{else}
+					0 (S.L.lift_movemode)
+				{endif}
+				{endif}
+			{endif}
+			{endif}
+'Hubliftwarnung:
+			(L.L.lift_warning_on) s0
+
+			(L.L.lift_pos_x) 0.01 >
+			(L.L.lift_pos_z_limit) (L.L.lift_pos_z) - 0.03 > &&
+			(L.S.GetTime) 0.48 % 0.24 < &&
+			(S.L.lift_warning_on)
+
+			l0 ! &&
+			{if}
+				(T.L.ev_warning_hublift)
+			{endif}
+		{else}
+			0 (S.L.lift_warning_on)
+		{endif}
+	{else}
+		0
+		(S.L.lift_warning_on)
+		(S.L.ramp_warning_on)
+	{endif}
+
+'LEUCHTEN-ÜBERTRAGUNG
+
+	(L.L.lift_warning_on) (L.L.elec_busbar_main) * (S.L.lift_warning_on_bulb)
+	(L.L.ramp_warning_on) (L.L.elec_busbar_main) * (S.L.ramp_warning_on_bulb)
+
+'Leuchtmelder:
+	(L.L.ramp_pos) 0.01 > (L.L.elec_busbar_main) * (S.L.cockpit_light_ramp)
+
+'HUBLIFTGEOMETRIE ===================================================
+
+	(M.L.lift_move_barrier_and_liftramp)
+
+'RAMPENGEOMETRIE ===================================================
+
+	(L.L.ramp_pos) 0 >
+	{if}
+'Über den Tangens den weitesten "Rausfallwinkel" ausrechnen:
+		(C.L.ramp_z_spiel) 1 (L.L.ramp_pos) - (C.L.ramp_x_faktor) * (C.L.ramp_x_offset) + / arctan s0
+'Höhe im Bereich des Auszuges messen:
+'	x	y	z
+	2.024	-0.363	0.370	(M.V.GetHeightAbovePoint) (C.L.ramp_x_faktor) / arcsin l0 min
+		57.296 * (S.L.ramp_rot)
+'K1:
+		(L.L.ramp_pos) 8 * 1 min (C.L.ramp_k1_max) * (L.L.ramp_rot) - (S.L.ramp_k1_rot)
+'K2:
+		(L.L.ramp_k1_rot) (C.L.ramp_k2_max) min (S.L.ramp_k2_rot)
+	{else}
+		0 (S.L.ramp_rot)
+	{endif}
+
+{end}
+
+
+{macro:lift_move_barrier_and_liftramp}
+	(L.L.lift_pos_x) 0.01 >
+	{if}
+		(M.L.lift_calc_z_limit)
+		(L.L.lift_pos_z) (L.L.lift_pos_z_limit) s0 >
+		{if}
+			l0 (S.L.lift_pos_z)
+		{endif}
+		(L.L.lift_pos_x) (F.L.lift_posx-barrier) (L.L.lift_pos_z_limit) (L.L.lift_pos_z) - (F.L.lift_posz-barrier) min 80 * (L.L.lift_pos_deckel) max (S.L.lift_pos_barrier)
+	{endif}
+{end}
+
+{macro:lift_calc_z_limit}
+'Höhe im Bereich des Auszuges messen:
+'	x	y	z
+	1.567	4.824	0.382	(M.V.GetHeightAbovePoint) 0 max 0.3 min (S.L.lift_pos_z_limit)
+	1.970	4.824	0.366	(M.V.GetHeightAbovePoint) (L.L.lift_pos_z) - -0.1 max 0.1 min -0.227 / 57.296 * (L.L.lift_pos_x) (F.L.lift_posx-deckel) max (S.L.lift_pos_deckel)
+{end}

@@ -1,0 +1,540 @@
+'##############
+'Heizungs-Script
+'##############
+
+'Simuliert Wagenheizung, Zusatzheizung (evtl. auch gleich den Kühlkreislauf mit...)
+
+'(c) 20.02.2009 Rüdiger Hülsmann
+'(c) 14.10.2013 Marcel Kuhnt
+
+'Script Version: 1.1
+'Omsi release: 1.0
+
+'Needs:
+'cockpit (für Taster und Regler)
+'elec
+'engine (for cooling circuit)
+'door (for door opening status)
+
+'Revision History:
+'- Rüdiger Hülsmann	17.02.2009	File created
+'- Rüdiger Hülsmann	20.02.2009	Batterietrennschalter eingefügt (v1.1)
+'- Marcel Kuhnt		10.08.2009	Added Revision History
+'- Marcel & Rüdiger	23.09.2010	Parking Heater, room temperature
+'- RÜdiger Hülsmann	16.11.2010	Front heater
+'- Rüdiger Hülsmann	18.11.2010	Improved front heater
+'- Rüdiger Hülsmann	20.11.2010	Cabin heater, values adjusted
+'- Rüdiger Hülsmann	22.11.2010	Auxheat Schmitt-triggered, engine coolable by fan heaters
+'- Rüdiger Hülsmann	10.01.2011	Driver window airflow
+'- Marcel Kuhnt		09.07.2012	Angepasst auf neue Busbar-Logik
+'- Marcel Kuhnt		12.07.2012	Stromverbrauch Umwälzpumpe und Standheizung (Leitwertgenerierung)
+'- Marcel Kuhnt		03.11.2012	Andere Klappfensterbezeichnung, nur vier Stück
+'- Marcel Kuhnt		23.02.2013	Bugfix, Danke an Christoph alias "rollman"! :-)
+'- Marcel Kuhnt		11.09.2013	Dachluken werden mit doppeltem Durchsatz berücksichtigt
+'- Marcel Kuhnt		14.10.2013	Einbau der elektronischen Heizungssteuerung des NL/NG
+
+'------------------------------------------------------------------------------------------
+
+
+
+
+
+
+'----------------------
+'	Init
+'----------------------
+{macro:heizung_init}
+	(L.S.Weather_Temperature) (S.L.Cabinair_Temp)
+	(L.S.Weather_AbsHum) (S.L.Cabinair_absHum)
+	1 (S.L.heater_ventilation_mode_sel)
+{end}
+
+
+{macro:heizung_frame}
+
+	(M.L.standheizung_frame)	
+	(M.L.cabinair_frame)
+	(M.L.heater_bedienfeld_frame)
+	(M.L.heater_frame)
+{end}
+
+
+
+
+
+
+
+
+{macro:cabinair_frame}
+
+'	Berechnung der Raten:
+	(L.L.Cabinair_Temp) (L.S.Weather_Temperature) - (C.L.cabinair_Qrate_envir_factor) * (S.L.cabinair_Qrate_envir)
+
+'	Direkte Ableitung der Motorwärme in den Fahrgastraum
+	(L.L.engine_temperature_envir) (L.L.Cabinair_Temp) - (C.L.cabinair_Qrate_engine_factor) * (S.L.cabinair_Qrate_engine)
+
+
+'	Berechnung der Solltemperatur am Frontheizgerät
+
+
+'		Berechnung der "Temperaturgrundlage" als Mischung zwischen Umluft und Außenluft:
+
+	(L.L.Cabinair_Temp) 1 (L.L.heater_ventilation_mode) - * (L.S.Weather_Temperature) (L.L.heater_ventilation_mode) * + s1
+
+	l1 (L.L.engine_temperature) l1 - (L.L.heater_temp) * (C.L.heat_exchanger_effectivity) * + (S.L.fanheater_t_target)
+
+
+'Berechnung der effektiven Gesamt-Luftaustauschfläche:
+	(L.L.door_0) (L.L.door_1) (L.L.door_2) (L.L.door_3) + + + (C.L.cabinair_A_perdoor) *
+
+	(L.L.cp_klappfenster_1) (L.L.cp_klappfenster_2) (L.L.cp_klappfenster_3) (L.L.cp_klappfenster_4) + + +
+	(L.L.cp_dachluke_1_pos) (L.L.cp_dachluke_2_pos) (L.L.cp_dachluke_3_pos) + 2 * +
+	(C.L.cabinair_A_perwindow) * + 
+	(C.L.cabinair_A_driverwindow) (L.L.cp_fahrerfenster_pos) * +
+
+'Berechnung des Gesamtvolumenstroms in die Außenwelt und umgekehrt (V zählt je Richtung, d.h. insgesamt wird 2*V bewegt)
+	(L.L.velocity) 20 / abs (C.L.cabinair_windowdoor_minkmh) + (C.L.cabinair_windowdoor_effectivity) * 3.6 / * (S.L.cabinair_Vrate_doorwindow)
+
+'Berechnung des Volumenstroms durchs Frontheizgerät
+	(L.L.heater_ventilation_mode) 1 =
+	{if}
+		(C.L.cabinair_A_frontheater) (L.L.velocity) 20 / abs (C.L.cabinair_windowdoor_minkmh) + (C.L.cabinair_windowdoor_effectivity) * 3.6 / * (S.L.cabinair_Vrate_fanheater)
+	{else}
+		(C.L.cabinair_A_frontheater) (L.L.heater_RPM) 100 / * (S.L.cabinair_Vrate_fanheater)
+	{endif}
+
+'Berechnung des Volumenstroms durch die Raumheizgeräte
+'MC 2011 0619: Es hängt natürlich von der tatsächlichen Drehzahl der "cabinheater" ab! Nicht von der Schalterstellung! ;-)
+	(C.L.cabinair_A_cabinheater) (L.L.cabinheater_RPM) 100 / * (S.L.cabinair_Vrate_cabinheater)
+
+
+
+'Berechnung der Temperaturrate durch Motor und Abstrahlung an die Umwelt...
+	(L.L.cabinair_Qrate_engine) (L.L.cabinair_Qrate_envir) - (C.L.cabinair_cvm) /
+'...und Temperaturrate durch Passagiere...
+	(C.L.cabinair_T_passenger) (L.L.Cabinair_Temp) - (C.L.cabinair_V) / (C.L.cabinair_Vrate_passenger) * (L.L.humans_count) * +
+'...und dieser durch die Volumenströme durch Fenster und Türen:
+	(L.S.Weather_Temperature) (L.L.Cabinair_Temp) - (C.L.cabinair_V) / (L.L.cabinair_Vrate_doorwindow) * +
+'...und des Frontheizgerätes...
+	(L.L.fanheater_t_target) (L.L.Cabinair_Temp) - (C.L.cabinair_V) / (L.L.cabinair_Vrate_fanheater) * +
+'...und der Raumheizgeräte...
+	(L.L.engine_temperature) (L.L.Cabinair_Temp) - (C.L.heat_exchanger_effectivity) * (C.L.cabinair_V) / (L.L.cabinair_Vrate_cabinheater) * +
+'...aufintegrieren:
+	(L.S.Timegap) * (L.L.Cabinair_Temp) + (S.L.Cabinair_Temp)
+
+'Berechnung der Motorkühlrate durch die Wärmetauscher in den Heizgeräten:
+
+	(L.L.fanheater_t_target) (L.L.Cabinair_Temp) - 0 max (C.L.cabinair_V) / (L.L.cabinair_Vrate_fanheater) * 
+	(L.L.engine_temperature) (C.L.heat_exchanger_effectivity) * (L.L.Cabinair_Temp) max (L.L.Cabinair_Temp) - (C.L.cabinair_V) / (L.L.cabinair_Vrate_cabinheater) * +
+	(C.L.cabinair_cvm) * 8 * (S.L.cabinair_Qrate_engine_fanheatcooling)
+
+
+
+'Berechnung der Feuchtigkeitsrate durch Volströme mit den Passagieren:
+	(C.L.cabinair_absHum_passenger) (L.L.Cabinair_absHum) - (C.L.cabinair_V) / (C.L.cabinair_Vrate_passenger) * (L.L.humans_count) *
+'Berechnung der Feuchtigkeitsrate durch Volumenströme mit der Außenwelt:
+	(L.S.Weather_AbsHum) (L.L.Cabinair_absHum) - (C.L.cabinair_V) / (L.L.cabinair_Vrate_doorwindow) * +
+'Berechnung der Feuchtigkeitsrate durch Frontheizgerät
+	(L.S.Weather_AbsHum) (L.L.Cabinair_absHum) - (C.L.cabinair_V) / (L.L.cabinair_Vrate_fanheater) * (L.L.heater_ventilation_mode) 1 >= * + (S.L.cabinair_test)
+'... aufintegrieren:
+	(L.S.Timegap) * (L.L.Cabinair_absHum) + (S.L.Cabinair_absHum)
+
+
+
+{end}
+
+
+{macro:heater_bedienfeld_frame}
+
+
+
+'---------------------------------------
+
+
+	(L.L.elec_busbar_main) (C.L.elec_busbar_minV) >
+	{if}
+
+
+'s5 = Generatorspannung verfügbar
+
+		(L.L.elec_V_generator) (C.L.elec_busbar_minV) > s5
+
+'---------------------------------------
+'Tastenbetätigungen:
+
+		(L.L.heater_DEF) !
+		{if}
+'----------------
+'Temperatur
+
+			(L.L.cp_taster_heiz_Tp)
+			(L.L.heater_speedmode) 0.5 > &&
+			{if}
+				1 (S.L.cp_taster_heiz_Tp_light)
+				(L.L.heater_temp_sel) (L.S.Timegap) (C.L.heater_tempmotor_speed) * + 1 min (S.L.heater_temp_sel)
+			{else}
+				0 (S.L.cp_taster_heiz_Tp_light)			
+			{endif}
+			(L.L.cp_taster_heiz_Tm)
+			(L.L.heater_speedmode) 0.5 > &&
+			{if}
+				1 (S.L.cp_taster_heiz_Tm_light)
+				(L.L.heater_temp_sel) (L.S.Timegap) (C.L.heater_tempmotor_speed) * - 0 max (S.L.heater_temp_sel)
+			{else}
+				0 (S.L.cp_taster_heiz_Tm_light)
+			{endif}
+'----------------
+'Lüfterstärke
+
+			(L.L.cp_taster_heiz_L0)	
+			{if}
+				0 (S.L.heater_speedmode_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_L1)	
+			l5 (L.L.heater_speedmode_sel) 0.5 < || &&
+			{if}
+				1 (S.L.heater_speedmode_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_L2)	
+			l5 &&
+			{if}
+				2 (S.L.heater_speedmode_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_L3)	
+			l5 &&
+			{if}	
+				3 (S.L.heater_speedmode_sel)
+			{endif}
+
+'----------------
+'Verteilung
+' 0 = F.ußraum
+' 1 = F.ußraum + T.ür
+' 2 = T.ür
+' 3 = W.indschutzscheibe
+
+			(L.L.cp_taster_heiz_V_F)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				0 (S.L.heater_verteilung_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_V_FT)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				1 (S.L.heater_verteilung_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_V_T)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				2 (S.L.heater_verteilung_sel)
+			{endif}
+
+			(L.L.cp_taster_heiz_V_W)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				3 (S.L.heater_verteilung_sel)
+			{endif}
+
+
+'----------------
+'Verteilung
+'0 = Umluft
+'0...1 = Mischluft
+'1 = Außenluft
+
+			(L.L.cp_taster_heiz_Smog)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				(L.L.heater_ventilation_mode_sel) 0.25 >
+				{if}
+					0 (S.L.heater_ventilation_mode_sel)
+				{else}
+					1 (S.L.heater_ventilation_mode_sel)
+				{endif}
+				0 (S.L.cp_taster_heiz_Smog)
+			{endif}
+
+			(L.L.cp_taster_heiz_Misch)
+			(L.L.heater_speedmode) 0.5 > &&
+			l5 &&
+			{if}
+				(L.L.heater_ventilation_mode_sel) s0 0.25 <
+				l0 0.25 > ||
+				{if}
+					0.5 (S.L.heater_ventilation_mode_sel)
+				{else}
+					1 (S.L.heater_ventilation_mode_sel)
+				{endif}
+				0 (S.L.cp_taster_heiz_Misch)
+			{endif}
+
+'----------------
+'Übertragen der IST-Werte auf SOLL-Werte, da DEF-Modus aus ist. Maximallüftungsstärke aber bei abgeschaltetem Motor nur 1
+
+
+			(L.L.heater_temp_sel) (S.L.heater_temp)
+			l5 {if}
+				(L.L.heater_speedmode_sel) (S.L.heater_speedmode)
+			{else}
+				(L.L.heater_speedmode_sel) 1 min (S.L.heater_speedmode)
+			{endif}
+			(L.L.heater_verteilung_sel) (S.L.heater_verteilung)
+			(L.L.heater_ventilation_mode_sel) (S.L.heater_ventilation_mode)
+
+'----------------
+'DEF-Settings:
+
+		{else}
+			1 (S.L.heater_temp)
+			3 (S.L.heater_speedmode)
+			3 (S.L.heater_verteilung)
+			1 (S.L.heater_ventilation_mode)
+		{endif}
+
+'----------------
+'DEF-Taste:
+
+		(L.L.cp_taster_heiz_DEF)
+		{if}
+			(L.L.heater_DEF) ! (S.L.heater_DEF)
+			0 (S.L.cp_taster_heiz_DEF)
+		{endif}
+
+
+'---------------------------------------
+'Kontrollleuchten:
+
+'Temperatureinstellung:
+
+
+		(L.L.heater_temp) (L.L.heater_speedmode) 0.5 > * s0
+		l0 0.05 > (S.L.cp_light_heiz_temp_1)
+		l0 0.15 > (S.L.cp_light_heiz_temp_2)
+		l0 0.25 > (S.L.cp_light_heiz_temp_3)
+		l0 0.35 > (S.L.cp_light_heiz_temp_4)
+		l0 0.45 > (S.L.cp_light_heiz_temp_5)
+		l0 0.55 > (S.L.cp_light_heiz_temp_6)
+		l0 0.65 > (S.L.cp_light_heiz_temp_7)
+		l0 0.75 > (S.L.cp_light_heiz_temp_8)
+		l0 0.85 > (S.L.cp_light_heiz_temp_9)
+		l0 0.95 > (S.L.cp_light_heiz_temp_10)
+
+		(L.L.heater_speedmode) s0
+		l0 0.5 < (S.L.cp_taster_heiz_L0_light)
+		l0 0.5 >= l0 1.5 < && (S.L.cp_taster_heiz_L1_light)
+		l0 1.5 >= l0 2.5 < && (S.L.cp_taster_heiz_L2_light)
+		l0 2.5 >= (S.L.cp_taster_heiz_L3_light)
+
+		(L.L.heater_verteilung) s0
+		l0 0.5 < (S.L.cp_taster_heiz_V_F_light)
+		l0 0.5 >= l0 1.5 < && (S.L.cp_taster_heiz_V_FT_light)
+		l0 1.5 >= l0 2.5 < && (S.L.cp_taster_heiz_V_T_light)
+		l0 2.5 >= (S.L.cp_taster_heiz_V_W_light)
+
+		(L.L.heater_ventilation_mode) s0
+		l0 0.25 < (S.L.cp_taster_heiz_Smog_light)
+		l0 0.25 >= l0 0.75 < && (S.L.cp_taster_heiz_Misch_light)
+
+		(L.L.heater_DEF) (S.L.cp_taster_heiz_DEF_light)
+
+	{else}
+		0
+		(S.L.cp_taster_heiz_Tm_light)
+		(S.L.cp_taster_heiz_Tp_light)
+		(S.L.cp_taster_heiz_L0_light)
+		(S.L.cp_taster_heiz_L1_light)
+		(S.L.cp_taster_heiz_L2_light)
+		(S.L.cp_taster_heiz_L3_light)
+		(S.L.cp_taster_heiz_V_F_light)
+		(S.L.cp_taster_heiz_V_FT_light)
+		(S.L.cp_taster_heiz_V_T_light)
+		(S.L.cp_taster_heiz_V_W_light)
+		(S.L.cp_taster_heiz_Smog_light)
+		(S.L.cp_taster_heiz_Misch_light)
+		(S.L.cp_taster_heiz_DEF_light)
+		(S.L.cp_light_heiz_temp_1)
+		(S.L.cp_light_heiz_temp_2)
+		(S.L.cp_light_heiz_temp_3)
+		(S.L.cp_light_heiz_temp_4)
+		(S.L.cp_light_heiz_temp_5)
+		(S.L.cp_light_heiz_temp_6)
+		(S.L.cp_light_heiz_temp_7)
+		(S.L.cp_light_heiz_temp_8)
+		(S.L.cp_light_heiz_temp_9)
+		(S.L.cp_light_heiz_temp_10)
+	{endif}
+
+
+{end}
+
+
+{macro:heater_frame}
+
+'Frontheizgerät:
+	(L.L.heater_speedmode) 3 / (L.L.elec_busbar_main) * s1
+
+'Anlauf oder Auslauf?
+	l1 100 * (L.L.heater_RPM) > 
+	{if}
+		1.5 s0
+	{else}
+		0.5 s0
+	{endif}
+
+' Berechnung der Luefterbeschleunigung:
+
+'Sollwert:
+	l1 100 * 
+'Istwert:
+	(L.L.heater_RPM)
+'Beschleunigung:
+	- s0 * (L.S.Timegap) *
+'Addition zum Istwert:
+	(L.L.heater_RPM) + (S.L.heater_RPM)
+
+'Leitwert generieren:
+	(L.L.elec_busbar_Rinv_summe) (L.L.heater_speedmode) 3 / (C.L.heater_Rinv) * + (S.L.elec_busbar_Rinv_summe)
+
+'Raumheizgeräte:
+	(L.L.engine_n) 399 >
+	{if}
+		(L.L.cp_heizluefter_sw) (L.L.elec_busbar_main) * s1
+	{else}
+		0 s1
+	{endif}
+
+'Anlauf oder Auslauf?
+	l1 100 * (L.L.cabinheater_RPM) > 
+	{if}
+		6 s0
+	{else}
+		1.0 s0
+	{endif}
+
+' Berechnung der Luefterbeschleunigung:
+
+'Sollwert:
+	l1 100 * 
+'Istwert:
+	(L.L.cabinheater_RPM)
+'Beschleunigung:
+	- s0 * (L.S.Timegap) *
+'Addition zum Istwert:
+	(L.L.cabinheater_RPM) + (S.L.cabinheater_RPM)
+
+'Leitwert generieren:
+	(L.L.cp_heizluefter_sw) 0.5 >
+	{if}
+		(L.L.elec_busbar_Rinv_summe) (C.L.cabinheater_Rinv) + (S.L.elec_busbar_Rinv_summe)
+	{else}
+		(L.L.cp_heizluefter_sw) -0.5 <
+		{if}
+			(L.L.elec_busbar_Rinv_summe) (C.L.cabinheater_Rinv) 0.6 * + (S.L.elec_busbar_Rinv_summe)
+		{endif}
+	{endif}
+
+
+{end}
+
+
+
+{macro:standheizung_frame}
+
+
+	(L.L.cp_taster_standheizung_target) (L.L.elec_busbar_avail) (C.L.elec_busbar_minV) > &&
+	{if}
+		(L.L.standheizung_running) !
+		{if}
+			0 (S.L.standheizung_volume_stufe1) (S.L.standheizung_volume_stufe2)
+			1 (S.L.standheizung_running)  
+			0 (S.L.standheizung_stufe1_time_elapsed)
+			1 (S.L.standheizung_stufe1) 
+		{endif}
+		1 (S.L.standheizung_target)
+	
+	{else}
+		0 (S.L.standheizung_target)
+	{endif}
+	
+
+
+
+'	Raufrödeln der Timer:
+	(L.L.standheizung_running)
+	{if}
+		(L.L.standheizung_stufe1_time_elapsed) (L.S.Timegap) + (S.L.standheizung_stufe1_time_elapsed)
+		(L.L.standheizung_stufe2_time_elapsed) (L.S.Timegap) + (S.L.standheizung_stufe2_time_elapsed)
+	{endif}
+
+'	Einschalten der 2. Stufe:
+	(L.L.standheizung_target) (L.L.standheizung_stufe1_time_elapsed) (C.L.standheizung_vorlauf) > &&
+	(L.L.engine_temperature) (C.L.standheizung_brenner_t_ein) < &&
+	{if}
+		(L.L.standheizung_stufe2) !
+		{if}
+			0 (S.L.standheizung_stufe2_time_elapsed)
+		{endif}
+		1 (S.L.standheizung_stufe2)
+	{endif}
+
+'	Ausschalten der 2. Stufe:
+	(L.L.standheizung_target) ! (L.L.standheizung_stufe2_time_elapsed) (C.L.standheizung_minlauf) > &&
+	(L.L.engine_temperature) (C.L.standheizung_brenner_t_aus) > ||
+	{if}
+		(L.L.standheizung_stufe2)
+		{if}
+			0 (S.L.standheizung_stufe1_time_elapsed)
+		{endif}
+		0 (S.L.standheizung_stufe2) 
+	{endif}
+
+'	Ausschalten der 1. Stufe:
+	(L.L.standheizung_target) ! (L.L.standheizung_stufe1_time_elapsed) (C.L.standheizung_nachlauf) > && 
+	{if}
+		0 (S.L.standheizung_stufe1)
+	{endif}
+
+	(L.L.standheizung_stufe1) 
+	{if}
+		(L.L.standheizung_volume_stufe1) (L.S.Timegap) 3 / + 1 min (S.L.standheizung_volume_stufe1)
+	{else}
+		(L.L.standheizung_volume_stufe1) (L.S.Timegap) 3 / - 0 max (S.L.standheizung_volume_stufe1)
+		0.01 <
+		{if}
+			0 (S.L.standheizung_running)
+		{endif}
+	{endif}
+
+	(L.L.standheizung_stufe2) 
+	{if}
+		(L.L.standheizung_volume_stufe2) (L.S.Timegap) 4 / + 1 min (S.L.standheizung_volume_stufe2)
+
+'		Berechnung der Temperaturveränderung:
+		(C.L.heizung_Qrate_standheizung) (L.L.cabinair_Qrate_envir) - (C.L.engine_cvm_engine) / (L.S.Timegap) * (L.L.engine_temperature) + (S.L.engine_temperature) 
+
+
+	{else}
+		(L.L.standheizung_volume_stufe2) (L.S.Timegap) 4 / - 0 max (S.L.standheizung_volume_stufe2)
+	{endif}
+
+	(L.L.standheizung_stufe2)
+	{if}
+		(L.L.elec_busbar_Rinv_summe) (C.L.standheizung_stufe2_Rinv) + (S.L.elec_busbar_Rinv_summe)
+	{else}
+		(L.L.standheizung_stufe1)
+		{if}
+			(L.L.elec_busbar_Rinv_summe) (C.L.standheizung_stufe1_Rinv) + (S.L.elec_busbar_Rinv_summe)
+		{endif}
+	{endif}
+
+{end}

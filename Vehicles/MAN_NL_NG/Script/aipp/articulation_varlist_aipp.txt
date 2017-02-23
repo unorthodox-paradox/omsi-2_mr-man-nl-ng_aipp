@@ -1,0 +1,11 @@
+articulation_0_alpha
+articulation_0_beta
+articulation_0_alpha_last
+articulation_0_beta_last
+articulation_0_alpha_speed
+articulation_0_beta_speed
+articulation_0_alpha_pitch
+articulation_0_beta_pitch
+articulation_knickschutz_warning
+articulation_0_alpha_volume
+articulation_0_beta_volume

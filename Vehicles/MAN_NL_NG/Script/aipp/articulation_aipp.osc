@@ -1,0 +1,76 @@
+'##############
+'Articulation Sound (and physics?) script
+'##############
+
+'Simulates bellow motion sound
+
+'(c) 18.11.2012 Rüdiger Hülsmann
+
+'Script Version: 1.0
+'Omsi release: 2.0
+
+'Needs:
+'- cockpit
+'- door-3
+'- antrieb
+'- engine
+
+'Revision History:
+'- Rüdiger Hülsmann	18.11.2012	Created from scratch
+'- Marcel Kuhnt		27.02.2013	Knickschutzwarnung geht aus, wenn Strom aus
+'- Marcel Kuhnt		22.03.2013	Knickschutz-Override-Schalter
+'- Rüdiger Hülsmann	28.10.2013	Gelenkquietschen winkel-/wagennummer- und altersabhängig
+'------------------------------------------------------------------------------------------
+
+
+'----------------------
+'	Init
+'----------------------
+
+{macro:articulation_init}
+
+' Setzen der Initial-Quietschlautstärke
+	-2 (S.L.articulation_0_alpha_volume) (S.L.articulation_0_beta_volume)
+
+{end}
+
+'----------------------
+'	Frame
+'----------------------
+
+{macro:articulation_frame}
+
+'Berechnung der Drehwinkeländerung pro Timegap
+'Hochachse:
+(L.L.articulation_0_alpha) (L.L.articulation_0_alpha_last) - (S.L.articulation_0_alpha_speed) (F.L.articulation_0_alpha_pitchcurve) (S.L.articulation_0_alpha_pitch)
+(L.L.articulation_0_alpha) (S.L.articulation_0_alpha_last)
+
+'Querachse:
+(L.L.articulation_0_beta) (L.L.articulation_0_beta_last) - (S.L.articulation_0_beta_speed) (F.L.articulation_0_beta_pitchcurve) (S.L.articulation_0_beta_pitch)
+(L.L.articulation_0_beta) (S.L.articulation_0_beta_last)
+
+
+'Bestimmen der Gesamtlautstärke je nach Wagennummer und Fahrzeugalter:
+(L.L.articulation_0_alpha_volume) -1.5 <
+{if}
+	(L.$.number) $StrToFloat 1000 * sin (L.S.Year) (C.L.articulation_baujahr) - 15 / + 1 min (S.L.articulation_0_alpha_volume)
+	(L.$.number) $StrToFloat 900 * sin (L.S.Year) (C.L.articulation_baujahr) - 15 / + 1 min (S.L.articulation_0_beta_volume)
+{endif}
+
+
+
+'Knickschutz-Sound und Eingreifen in die Motorsteuerung
+(L.L.elec_busbar_main) (C.L.elec_busbar_minV) > (L.L.cp_knick_ovrd_sw) ! &&
+{if}
+
+	(L.L.articulation_0_alpha) 47 > (L.L.articulation_0_alpha) -47 < || (S.L.articulation_knickschutz_warning) (S.L.engine_knickschutz_eingriff)
+
+
+'Eingreifen der Haltestellenbremse bei noch größerem Knickwinkel im Rückwärtsgang
+	(L.L.articulation_0_alpha) 48 > (L.L.articulation_0_alpha) -48 < || (L.L.antrieb_getr_gangwahl) 1 <= && (S.L.door_hstbremse_knickschutz)
+
+{else}
+	0 (S.L.articulation_knickschutz_warning) (S.L.engine_knickschutz_eingriff) (S.L.door_hstbremse_knickschutz)
+{endif}
+
+{end}
