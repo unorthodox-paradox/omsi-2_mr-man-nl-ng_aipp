@@ -949,46 +949,62 @@
                     {endif}
                 {endif}
                 
-                (L.L.ai_open_door_0_preconditions) (L.L.ai_front_door_entry_req) || (L.L.doorTarget_0) ! &&
+                (L.L.ai_open_door_0_preconditions) (L.L.ai_front_door_entry_req) ||
                 {if}
-                    (L.L.ai_front_door_entry_req) (L.L.ai_door_0_last_op) 1 = ! (L.L.ai_door_0_last_trigered)
-                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + s1 > || &&
+                    (L.L.doorTarget_0) !
                     {if}
-                        1 (S.L.ai_door_0_last_op)
-                        l1 (S.L.ai_door_0_last_trigered)
-                    {else}
-                        (L.L.ai_door_0_last_op) 1 = !
+                        (L.L.ai_front_door_entry_req) (L.L.ai_door_0_last_op) 1 = ! (L.L.ai_door_0_last_trigered)
+                            (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + s1 > || &&
                         {if}
                             1 (S.L.ai_door_0_last_op)
-                            (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_0_last_trigered)
+                            l1 (S.L.ai_door_0_last_trigered)
+                        {else}
+                            (L.L.ai_door_0_last_op) 1 = !
+                            {if}
+                                1 (S.L.ai_door_0_last_op)
+                                (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_0_last_trigered)
+                            {endif}
                         {endif}
-                    {endif}
-                    (L.L._game_time) (L.L.ai_door_0_last_trigered) >
-                    {if}
-                        (M.L.trg_bus_doorfront0)
-                        (L.L.ai_open_door_1_preconditions) &&
+                        (L.L._game_time) (L.L.ai_door_0_last_trigered) >
                         {if}
-                            1 (S.L.ai_door_1_last_op)
-                            (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
+                            (M.L.trg_bus_doorfront0)
+                            (L.L.ai_open_door_1_preconditions)
+                            {if}
+                                1 (S.L.ai_door_1_last_op)
+                                (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
+                            {endif}
+                            0 (S.L.ai_door_0_last_op)
                         {endif}
-                        0 (S.L.ai_door_0_last_op)
+                    {else}
+                        (L.L.ai_front_door_entry_req)
+                        {if}
+                            0 (S.L.ai_door_0_last_op)
+                        {endif}
                     {endif}
                 {endif}
 
-                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_0) && (L.L.doorTarget_1) ! &&
+                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_0) &&
                 {if}
-                    (L.L.ai_door_1_last_op) 1 = !
+                    (L.L.doorTarget_1) !
                     {if}
-                        1 (S.L.ai_door_1_last_op)
-                        (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_1_last_trigered)
-                    {endif}
-                    (L.L._game_time) (L.L.ai_door_1_last_trigered) >
-                    {if}
-                        (M.L.trg_bus_doorfront1)
-                        0 (S.L.ai_door_1_last_op)
+                        (L.L.ai_door_1_last_op) 1 = !
+                        {if}
+                            1 (S.L.ai_door_1_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_1_last_trigered)
+                        {endif}
+                        (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                        {if}
+                            (M.L.trg_bus_doorfront1)
+                            0 (S.L.ai_door_1_last_op)
+                        {endif}
+                    {else}
+                        (L.L.ai_front_door_entry_req)
+                        {if}
+                            0 (S.L.ai_door_1_last_op)
+                        {endif}
                     {endif}
                 {endif}
-                
+
                 (L.L.ai_override_back_doors_preconditions) ! (L.L.door_handsteuerung) && (L.L._r9) 30 < (L.L._r9) 50 > ||
                     (L.L.ai_env_perception_rainy) || &&
                 {if}
@@ -1004,8 +1020,8 @@
                     {endif}
                 {endif}
                 
-                (L.L.ai_open_door_1_preconditions) ! (L.L.doorTarget_1) && (L.L._r9) 20 < (L.L._r9) 50 > || &&
-                    (L.L.ai_front_door_entry_req) ! &&
+                (L.L.ai_open_door_1_preconditions) ! (L.L.ai_open_door_0_preconditions) ! || (L.L.doorTarget_1) && (L.L._r9) 20 <
+                    (L.L._r9) 50 > || && (L.L.ai_front_door_entry_req) ! &&
                 {if}
                     (L.L.ai_door_1_last_op) 2 = !
                     {if}
@@ -1024,7 +1040,7 @@
                     {endif}
                 {endif}
 
-                (L.L.ai_open_door_0_preconditions) ! (L.L.doorTarget_0) && (L.L._r9) 20 < (L.L._r9) 50 > || &&
+                (L.L.ai_open_door_0_preconditions) ! (L.L.doorTarget_0) && (L.L.doorTarget_1) ! && (L.L._r9) 20 < (L.L._r9) 50 > || &&
                     (L.L.ai_front_door_entry_req) ! &&
                 {if}
                     (L.L.ai_door_0_last_op) 2 = !
