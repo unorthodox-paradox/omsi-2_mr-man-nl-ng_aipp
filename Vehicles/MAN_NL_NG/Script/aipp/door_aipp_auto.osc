@@ -1138,6 +1138,7 @@
 
             (L.L.ai_front_door_entry_req)
             {if}
+                -1 (S.L.ai_depart_with_front_door_open)
                 (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
                 {if}
                     (L.L.door_AI_timer) (L.L.ai_terminus_stop_delayed_entry_req_departure_delay) min (S.L.door_AI_timer)
@@ -1174,7 +1175,7 @@
                     0 (S.L.ai_door_1_last_op)
                 {endif}
             {else}
-                (L.L.door_AI_timer) 0 >
+                (L.L.door_AI_timer) 0 > (L.L.ai_depart_with_front_door_open) -1 = &&
                 {if}
                     (M.L.ai_can_depart_with_front_door_open)
                 {endif}
@@ -2385,8 +2386,7 @@
     {if}
         l2 10 + s2
     {endif}
-    l2 (L.L.ai_departure_with_front_door_open_chance) + random 0 = (L.L.ai_arrived_with_front_door_open) l1 4 <= l1 4 >
-        3 random 0 = && || && || (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_warm) || &&
+    l2 (L.L.ai_departure_with_front_door_open_chance) + random 0 = (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_warm) || &&
         (L.L.ai_departure_with_front_door_open_if_human_count_below) && (L.L.ai_env_perception_rainy) ! &&
         (S.L.ai_arrived_with_front_door_open)
 {end}
