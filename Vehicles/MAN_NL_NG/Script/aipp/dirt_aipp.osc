@@ -24,6 +24,8 @@
 'Dirt incr due to vehicle-local variable
 
 	(L.S.Timegap) (L.L.DirtRate) * s0
+    
+    (L.L.ai_dirt_norm) l0 + 1 min 0 max (S.L.ai_dirt_norm)
 
 	(L.L.Dirt_Wiped) l0
 	+ 1 min 0 max

@@ -72,11 +72,11 @@ ai_lighting_profile_2_brightness_variation_under_precipitation
 
 [const]
 ai_lighting_profile_2_max_precipitation
-0.01
+0.1
 
 [const]
 ai_lighting_profile_2_precipitation_variation
-0.1
+0.05
 
 [const]
 ai_lighting_profile_3_min_sun_elevation
@@ -104,11 +104,11 @@ ai_lighting_profile_3_brightness_variation_under_precipitation
 
 [const]
 ai_lighting_profile_3_max_precipitation
-0.1
+0.35
 
 [const]
 ai_lighting_profile_3_precipitation_variation
-0.25
+0.1
 
 [const]
 ai_lighting_profile_4_chance
@@ -175,5 +175,63 @@ ai_lighting_midday
 12
 
 [const]
+secs_per_min
+60
+
+[const]
 secs_per_hour
 3600
+
+[const]
+secs_per_day
+86400
+
+[newcurve]
+env_brightness_max_f_solar_elevation_angle
+
+[pnt]
+-20
+0
+
+[pnt]
+-10
+0.05
+
+[pnt]
+-5
+0.1
+
+[pnt]
+0
+0.25
+
+[pnt]
+2.5
+0.5
+
+[pnt]
+5
+0.75
+
+[pnt]
+10
+0.9
+
+[pnt]
+30
+1
+
+[pnt]
+90
+1
+
+[newcurve]
+env_brightness_reduction_f_precip_rate
+
+[pnt]
+0
+0
+
+[pnt]
+1
+0.15

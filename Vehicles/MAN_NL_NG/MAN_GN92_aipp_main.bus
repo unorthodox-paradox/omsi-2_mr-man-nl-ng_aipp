@@ -87,7 +87,7 @@ model\passengercabin_GN92_aipp_main.cfg
 	////////////////////////////////////////////////////////
 
 [varnamelist]
-24
+25
 script\aipp\ai_varlist_aipp.txt
 script\aipp\collision_varlist_aipp.txt
 script\aipp\antrieb_varlist_aipp.txt
@@ -112,6 +112,7 @@ script\aipp\ticketprinter_varlist_aipp.txt
 script\aipp\articulation_varlist_aipp.txt
 script\aipp\ramplift_varlist_aipp.txt
 script\aipp\spray_varlist_aipp.txt
+..\..\Scripts\up-utils\up-utils_vars.txt
 
 [stringvarnamelist]
 5
@@ -122,8 +123,8 @@ script\aipp\ticketprinter_stringvarlist_aipp.txt
 script\aipp\cockpit_stringvarlist_aipp.txt
 
 [script]
-25
-script\aipp\man_en92_main_aipp.osc
+26
+script\aipp\man_gn92_main_aipp.osc
 script\aipp\collision_aipp.osc
 script\aipp\antrieb_d854_gn_aipp.osc
 script\aipp\engine_gn_aipp.osc
@@ -148,6 +149,7 @@ script\aipp\ticketprinter_aipp.osc
 script\aipp\articulation_aipp.osc
 script\aipp\ramplift_aipp.osc
 script\aipp\spray_aipp.osc
+..\..\Scripts\up-utils\up-utils.osc
 
 [constfile]
 19

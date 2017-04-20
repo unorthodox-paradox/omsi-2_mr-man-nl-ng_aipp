@@ -265,8 +265,6 @@
 
 {end}
 
-
-
 {macro:lights_AI}
 'AI-Einfluss auf Beleuchtung:
 	(L.L.AI)
@@ -277,6 +275,29 @@
             (M.L.lights_startblinkgeber)
         {else}
             0 (S.L.lights_sw_warnblinker)
+            (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_disable_indicators) && (L.L.ai_stop_timer)
+                (L.L.ai_ext_stop_indicator_off_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer)
+                (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_indicator_on_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max
+                (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s2 !
+            {if}
+                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_disable_indicators) && (L.L.ai_indicator_l_on) (L.L.ai_indicator_r_on) || &&
+                    (L.L.lights_sw_blinker) ! &&
+                {if}
+                    (L.L.ai_ext_stop_indicator_on_time_alt) -1 =
+                    {if}
+                        (L.S.Time) (L.L.ai_ext_stop_indicator_on_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
+                            max s3 + (S.L.ai_ext_stop_indicator_on_time_alt) (C.L.secs_per_day) >=
+                        {if}
+                            (C.L.secs_per_day) (L.S.Time) - l3 + (S.L.ai_ext_stop_indicator_on_time_alt)
+                        {endif}
+                    {endif}
+                    (L.S.Time) (L.L.ai_ext_stop_indicator_on_time_alt) <= s3
+                {else}
+                    0 s3
+                {endif}
+            {else}
+                0 s3
+            {endif}
             l0
             {if}
                 (L.L.ai_indicator_l_usage_initialized) !
@@ -284,9 +305,13 @@
                     1 (S.L.ai_indicator_l_usage_initialized)
                     20 random 0 = ! (S.L.ai_indicator_l_on)
                 {endif}
-                (L.L.ai_indicator_l_on) (L.L.AI_Engine) 0.5 > && (S.L.lights_sw_blinker)
+                (L.L.ai_indicator_l_on) l2 ! && l3 ! && (S.L.lights_sw_blinker)
                 {if}
                     (M.L.lights_startblinkgeber)
+                    (L.L.ai_ext_stop_indicator_on_time_alt) -1 = !
+                    {if}
+                        -1 (S.L.ai_ext_stop_indicator_on_time_alt)
+                    {endif}
                 {endif}
             {else}
                 0 (S.L.ai_indicator_l_usage_initialized) (S.L.ai_indicator_l_on)
@@ -297,9 +322,13 @@
                         1 (S.L.ai_indicator_r_usage_initialized)
                         20 random 0 = ! (S.L.ai_indicator_r_on)
                     {endif}
-                    (L.L.ai_indicator_r_on) (L.L.AI_Engine) 0.5 > && 2 * (S.L.lights_sw_blinker)
+                    (L.L.ai_indicator_r_on) l2 ! && l3 ! && 2 * (S.L.lights_sw_blinker)
                     {if}
                         (M.L.lights_startblinkgeber)
+                        (L.L.ai_ext_stop_indicator_on_time_alt) -1 = !
+                        {if}
+                            -1 (S.L.ai_ext_stop_indicator_on_time_alt)
+                        {endif}
                     {endif}
                 {else}
                     0 (S.L.ai_indicator_r_usage_initialized) (S.L.ai_indicator_l_on) (S.L.ai_indicator_r_on) (S.L.lights_sw_blinker)
@@ -309,92 +338,184 @@
 
         (C.L.ai_lighting_is_omsi_controlled)
         {if}
-            (L.L.AI_Light) (S.L.ai_ovh_lights_on)
-            (L.L.AI_Interiorlight) (S.L.ai_ovh_int_lights_on)
+            (L.L.AI_Light) s0 0 > * (S.L.ai_ovh_lights_on) 
+            {if}
+                l0 1 < (L.L.engine_n) 400 < ||
+                {if}
+                    0.5 (S.L.cp_schluessel_rot)
+                    0 (S.L.lights_sw_fern)
+                {else}
+                    l0 1.5 <
+                    {if}
+                        1 (S.L.cp_schluessel_rot)
+                        0 (S.L.lights_sw_fern)
+                    {else}
+                        1 (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
+                    {endif}
+                {endif}
+            {else}
+                0 (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
+            {endif}
+            (L.L.AI_Interiorlight) (S.L.ai_ovh_int_lights_on) (S.L.cp_licht_unterdeck_sw)
+            0 (S.L.cp_licht_untenrechts_sw) (S.L.cp_fahrerlicht_sw)
         {else}
             (L.L.ai_lighting_profile) 1 = !
             {if}
-                (L.L.ai_lighting_actualization_timer) s7
+                (L.L.ai_lighting_initialized) !
                 {if}
-                    l7 (L.S.Timegap) - 0 max (S.L.ai_lighting_actualization_timer) s7
-                {endif}
-                l7 !
-                {if}
-                    (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
-                        (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
-                        (S.L.ai_lighting_actualization_timer)
-                    (L.L.ai_lighting_actualization_timer_prev) s0
-                    (L.L.ai_lighting_on_timer) s7
-                    {if}
-                        l7 l0 - 0 max (S.L.ai_lighting_on_timer)
-                    {endif}
-                    (L.L.ai_lighting_int_on_timer) s7
-                    {if}
-                        l7 l0 - 0 max (S.L.ai_lighting_int_on_timer)
-                    {endif}
-                    (L.L.ai_lighting_off_timer) s7
-                    {if}
-                        l7 l0 - 0 max (S.L.ai_lighting_off_timer)
-                    {endif}
-                    (L.L.ai_lighting_int_off_timer) s7
-                    {if}
-                        l7 l0 - 0 max (S.L.ai_lighting_int_off_timer)
-                    {endif}
-                    (L.L.ai_lighting_actualization_timer) (S.L.ai_lighting_actualization_timer_prev)
                     (M.L.set_lighting_regs)
-                    (M.L.is_sufficiently_dark) l5
+                    (M.L.is_sufficiently_dark_initial_perm_on) l5
                     {if}
-                        (L.L.ai_ovh_lights_on) ! (L.L.ai_lighting_on_timer) ! &&
-                        {if}
-                            1 (S.L.ai_ovh_lights_on)
-                            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
-                        {endif}
-                        (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                        1 (S.L.ai_ovh_lights_on)
+                        (M.L.is_sufficiently_dark_interior) l6 (S.L.ai_ovh_int_lights_on)
                     {else}
-                        (L.L.ai_ovh_lights_on) (L.L.ai_lighting_off_timer) ! &&
+                        (L.S.Time) trunc (C.L.secs_per_hour) / (C.L.ai_lighting_midday) < (S.L._r9)
+                        (M.L.is_sufficiently_dark_initial_temp_off) l5
                         {if}
-                            0 (S.L.ai_ovh_lights_on)
-                            (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                            (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_darkness_departure_tolerance_variation)
+                                random + (S.L.ai_lighting_on_timer)
+                        {else}
+                            (M.L.is_sufficiently_dark_initial_temp_on) l5
+                            {if}
+                                1 (S.L.ai_ovh_lights_on)
+                                (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_brightness_departure_tolerance_variation)
+                                    random + (S.L.ai_lighting_off_timer)
+                            {endif}
                         {endif}
-                        (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
                     {endif}
-                    (M.L.is_sufficiently_dark_interior) l6
+                    1 (S.L.ai_lighting_initialized)
+                {else}
+                    (L.L.ai_lighting_actualization_timer) s7 (L.L.ai_lighting_actualization_threshold) <
                     {if}
-                        (L.L.ai_ovh_int_lights_on) ! (L.L.ai_lighting_int_on_timer) ! &&
+                        l7 (L.L.ai_timegap) + (L.L.ai_lighting_actualization_threshold) min (S.L.ai_lighting_actualization_timer) s7
+                    {endif}
+                    l7 (L.L.ai_lighting_actualization_threshold) =
+                    {if}
+                        0 (S.L.ai_lighting_actualization_timer)
+                        l7 (L.L.ai_timegap) max (S.L._r10)
+                        (M.L.set_lighting_regs)
+                        (M.L.is_sufficiently_dark) l5
                         {if}
-                            1 (S.L.ai_ovh_int_lights_on)
-                            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                            (L.L.ai_ovh_lights_on) !
+                            {if}
+                                (L.L.ai_lighting_on_timer) s7
+                                {if}
+                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_on_timer) s7
+                                {endif}
+                                l7 !
+                                {if}
+                                    1 (S.L.ai_ovh_lights_on)
+                                    (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
+                                {endif}
+                            {else}
+                                (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
+                            {endif}
+                            (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                        {else}
+                            (L.L.ai_ovh_lights_on)
+                            {if}
+                                (L.L.ai_lighting_off_timer) s7
+                                {if}
+                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_off_timer) s7
+                                {endif}
+                                l7 !
+                                {if}
+                                    0 (S.L.ai_ovh_lights_on)
+                                    (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                                {endif}
+                            {else}
+                                (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                            {endif}
+                            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer) 
                         {endif}
-                        (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
-                    {else}
-                        (L.L.ai_ovh_int_lights_on) (L.L.ai_lighting_int_off_timer) ! &&
+                        (M.L.is_sufficiently_dark_interior) l6
                         {if}
-                            0 (S.L.ai_ovh_int_lights_on)
-                            (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                            (L.L.ai_ovh_int_lights_on) !
+                            {if}
+                                (L.L.ai_lighting_int_on_timer) s7
+                                {if}
+                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_on_timer) s7
+                                {endif}
+                                l7 !
+                                {if}
+                                    1 (S.L.ai_ovh_int_lights_on)
+                                    (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                                {endif}
+                            {else}
+                                (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                            {endif}
+                            (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                        {else}
+                            (L.L.ai_ovh_int_lights_on)
+                            {if}
+                                (L.L.ai_lighting_int_off_timer) s7
+                                {if}
+                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_off_timer) s7
+                                {endif}
+                                l7 !
+                                {if}
+                                    0 (S.L.ai_ovh_int_lights_on)
+                                    (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                                {endif}
+                            {else}
+                                (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                            {endif}
+                            (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer) 
                         {endif}
-                        (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                        (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
+                            (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
+                            (S.L.ai_lighting_actualization_threshold)
                     {endif}
                 {endif}
             {endif}
             (L.L.ai_ovh_lights_on)
-            {if}
-                (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_at_extended_stop) && (L.L.ai_stop_timer) 15 > (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration) 15 - 0 max < && &&
-                    (L.L.ai_estimated_stop_duration) 30 - 0 max 180 > &&
+            {if}                
+                (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_dim_ext_lights) && (L.L.ai_stop_timer)
+                    (L.L.ai_ext_stop_ext_light_dimming_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer)
+                    (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_ext_light_resetting_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max
+                    (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < &&
                 {if}
-                    (L.L.ai_lighting_profile) 1 = (L.L.ai_lighting_profile) 4 = ! (L.S.SunAlt) (L.L.ai_lighting_sun_elevation_threshold) 5 -
+                    (L.L.ai_lighting_profile) 1 = (L.L.ai_lighting_profile) 4 = ! (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 -
                         (C.L.ai_lighting_profile_4_min_sun_elevation) max < && || 0.5 * (S.L.cp_schluessel_rot)
                     0 (S.L.lights_sw_fern)
                 {else}
-                    (L.L.ai_lighting_profile) 4 = (L.S.SunAlt) (C.L.ai_lighting_profile_4_min_sun_elevation) 5 - > &&
+                    (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_dim_ext_lights) && (L.L.ai_ext_stop_ext_light_resetting_time_alt) -1 = &&
+                        (L.L.cp_schluessel_rot) 1 < &&
                     {if}
-                        0.5 (S.L.cp_schluessel_rot)
-                    {else}
-                        1 (S.L.cp_schluessel_rot)
+                        (L.S.Time) (L.L.ai_ext_stop_ext_light_resetting_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
+                            max s1 + (S.L.ai_ext_stop_ext_light_resetting_time_alt) (C.L.secs_per_day) >=
+                        {if}
+                            (C.L.secs_per_day) (L.S.Time) - l1 + (S.L.ai_ext_stop_ext_light_resetting_time_alt)
+                        {endif}
                     {endif}
-                    (L.L.cp_schluessel_rot) 1 = (L.L.AI_Light) 1 > * (S.L.lights_sw_fern)
+                    (L.L.AI_Scheduled_AtStation) -1 = ! (L.S.Time) (L.L.ai_ext_stop_ext_light_resetting_time_alt) > ||
+                    {if}
+                        (L.L.ai_lighting_profile) 4 = (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 - > && (L.L.ai_lighting_dusk_or_dawn_standstill_only) &&
+                        {if}
+                            0.5 (S.L.cp_schluessel_rot)
+                            0 (S.L.lights_sw_fern)
+                        {else}
+                            1 (S.L.cp_schluessel_rot)
+                            (L.L.cp_schluessel_rot) 1 = (L.L.AI_Light) 1 > * (S.L.lights_sw_fern)
+                        {endif}
+                        (L.L.ai_ext_stop_ext_light_resetting_time_alt) -1 = !
+                        {if}
+                            -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt)
+                        {endif}
+                    {endif}
                 {endif}
-                (L.L.cp_schluessel_rot) ! (L.S.SunAlt) (C.L.ai_lighting_profile_4_min_sun_elevation) < && (L.L.AI_Scheduled_AtStation) 1 = &&
+                (L.L.cp_schluessel_rot) ! (L.L.ai_sun_alt) (C.L.ai_lighting_profile_4_min_sun_elevation) < && (L.L.AI_Scheduled_AtStation) 1 = &&
                     (L.L.cp_licht_unterdeck_sw) (L.L.doorTarget_0) || && (S.L.cp_fahrerlicht_sw)
+                (L.L.cp_schluessel_rot) ! (L.L.ai_lighting_off_timer) (L.L.ai_lighting_brightness_tolerance) < &&
+                {if}
+                    (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                    0 (S.L.ai_ovh_lights_on)
+                    (L.L.ai_ovh_int_lights_on) (L.L.ai_lighting_int_off_timer) (L.L.ai_lighting_int_brightness_tolerance) < &&
+                    {if}
+                        (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                        0 (S.L.ai_ovh_int_lights_on)
+                    {endif}
+                {endif}
             {else}
                 0 (S.L.cp_fahrerlicht_sw) (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
             {endif}
@@ -404,19 +525,29 @@
                 {if}
                     1 (S.L.cp_licht_unterdeck_sw) (S.L.cp_licht_untenrechts_sw)
                 {else}
-                    (L.L.humans_count) (M.V.GetTTBusstopCount) 1 > (L.L.AI_target_index) 0 (M.V.GetTerminusString) $RemoveSpaces (S.$._sr0) "" $= ! &&
-                        (L.$._sr0) "Betribsfahrt" $= ! && (L.$._sr0) "BETRIEBSFAHRT" $= ! && (L.$._sr0) "Dienstfahrt" $= ! &&
-                        (L.$._sr0) "DIENSTFAHRT" $= ! && (L.$._sr0) "Sonderfahrt" $= ! && (L.$._sr0) "SONDERFAHRT" $= ! && ||
-                        (S.L.cp_licht_unterdeck_sw) (L.L.ai_lighting_profile) 4 = ! && (L.S.Time) trunc (C.L.secs_per_hour) / (S.L._r10) 5.5
-                        (L.L.ai_lighting_int_front_on_variation) + > (L.L._r10) 22.5 (L.L.ai_lighting_int_front_off_variation) + < && &&
-                        (S.L.cp_licht_untenrechts_sw)
+                    (L.L.humans_count) || (L.L.ai_on_service_trip) ! || (L.L.ai_lighting_service_trip_int_off) ! || (S.L.cp_licht_unterdeck_sw)
+                        (L.L.ai_lighting_profile) 4 = ! && (L.S.Time) trunc (C.L.secs_per_hour) / (S.L._r10) 5.5 (L.L.ai_lighting_int_front_on_variation) + >
+                        (L.L._r10) 22.5 (L.L.ai_lighting_int_front_off_variation) + < && && (S.L.cp_licht_untenrechts_sw)
+                {endif}
+                (L.L.cp_licht_unterdeck_sw) ! (L.L.ai_lighting_int_off_timer) (L.L.ai_lighting_int_brightness_tolerance) < &&
+                {if}
+                    (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                    0 (S.L.ai_ovh_int_lights_on)
                 {endif}
             {else}
                 0 (S.L.cp_licht_unterdeck_sw) (S.L.cp_licht_untenrechts_sw)
             {endif}
         {endif}
     {else}
-        0 (S.L.ai_ovh_lights_on)
+        (C.L.ai_lighting_is_omsi_controlled) ! (L.L.ai_lighting_profile) 1 = ! &&
+        {if}
+            0 (S.L.ai_lighting_actualization_timer)
+            -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt) (S.L.ai_ext_stop_indicator_on_time_alt)
+            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
+            (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+            (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+            (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+        {endif}
 	{endif}
 {end}
 
@@ -467,98 +598,51 @@
                 l2 (S.L.ai_lighting_brightness_threshold)
                 l3 (S.L.ai_lighting_brightness_threshold_under_precipitation)
                 l4 (S.L.ai_lighting_precipitation_threshold)
+                0 (S.L.ai_lighting_dusk_or_dawn_standstill_only)
+                600 random 10 / s0
+                2 random 0 =
+                {if}
+                    l0 /-/ s0
+                {endif}
+                l0 60 / (S.L.ai_lighting_int_front_on_variation)
+                600 random 10 / s0
+                2 random 0 =
+                {if}
+                    l0 /-/ s0
+                {endif}
+                l0 60 / (S.L.ai_lighting_int_front_off_variation)
+            {else}
+                -1 (S.L.ai_lighting_brightness_threshold) (S.L.ai_lighting_brightness_threshold_under_precipitation) (S.L.ai_lighting_precipitation_threshold)
+                    (S.L.ai_lighting_int_front_on_variation) (S.L.ai_lighting_int_front_off_variation)
+                100 random 40 < (S.L.ai_lighting_dusk_or_dawn_standstill_only)
             {endif}
             (C.L.ai_lighting_thresholds_departure_tolerance) s0
                 (C.L.ai_lighting_thresholds_darkness_tolerance_variation) random +
-                (S.L.ai_lighting_darkness_tolerance)
+                (S.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer) 60 random 10 + + (S.L.ai_lighting_int_darkness_tolerance)
+                (S.L.ai_lighting_int_on_timer)
             l0 (C.L.ai_lighting_thresholds_brightness_tolerance_variation) random +
-                (S.L.ai_lighting_brightness_tolerance)
-            (M.L.set_lighting_regs)
-            l0 3 =
-            {if}
-                (C.L.ai_lighting_profile_3_min_sun_elevation) s5
-                (C.L.ai_lighting_profile_3_min_brightness) s6
-                (C.L.ai_lighting_profile_3_min_brightness_under_precipitation) s7
-                (C.L.ai_lighting_profile_3_max_precipitation) (S.L._r8)
-            {else}
-                l0 2 =
-                {if}
-                    (C.L.ai_lighting_profile_2_min_sun_elevation) s5
-                    (C.L.ai_lighting_profile_2_min_brightness) s6
-                    (C.L.ai_lighting_profile_2_min_brightness_under_precipitation) s7
-                    (C.L.ai_lighting_profile_2_max_precipitation) (S.L._r8)
-                {else}
-                    (C.L.ai_lighting_profile_4_min_sun_elevation) s5
-                {endif}
-            {endif}
-            l1 l5 < l0 4 = ! l2 l6 < l3 l4 && l2 l7 < l4 (L.L._r8) > || && || && ||
-            {if}
-                1 (S.L.ai_ovh_lights_on)
-                (M.L.set_lighting_regs)
-                (M.L.is_sufficiently_dark_interior) l6
-                {if}
-                    1 (S.L.ai_ovh_int_lights_on)
-                {endif}
-            {else}
-                (L.S.Time) trunc (C.L.secs_per_hour) / (C.L.ai_lighting_midday) < (S.L._r9)
-                l1 (L.L.ai_lighting_sun_elevation_threshold) < (L.L._r9) ! && l0 4 = ! l2
-                    (L.L.ai_lighting_brightness_threshold) < (L.L._r9) ! && l3 l4 && l2
-                    (L.L.ai_lighting_brightness_threshold_under_precipitation) < l4
-                    (L.L.ai_lighting_precipitation_threshold) > || && || && ||
-                {if}
-                    (C.L.ai_lighting_thresholds_initial_departure_tolerance)
-                        (C.L.ai_lighting_thresholds_initial_darkness_departure_tolerance_variation) random +
-                        (S.L.ai_lighting_on_timer) (S.L.ai_lighting_int_on_timer)
-                {else}
-                    l0 3 =
-                    {if}
-                        l5 (C.L.ai_lighting_profile_3_sun_elevation_variation) + s5
-                        l6 (C.L.ai_lighting_profile_3_brightness_variation) + s6
-                        l7 (C.L.ai_lighting_profile_3_brightness_variation_under_precipitation) + s7
-                        (L.L._r8) (C.L.ai_lighting_profile_3_precipitation_variation) + (S.L._r8)
-                    {else}
-                        l0 2 =
-                        {if}
-                            l5 (C.L.ai_lighting_profile_2_sun_elevation_variation) + s5
-                            l6 (C.L.ai_lighting_profile_2_brightness_variation) + s6
-                            l7 (C.L.ai_lighting_profile_2_brightness_variation_under_precipitation) + s7
-                            (L.L._r8) (C.L.ai_lighting_profile_2_precipitation_variation) + (S.L._r8)
-                        {else}
-                            l5 (C.L.ai_lighting_profile_4_sun_elevation_variation) + s5
-                        {endif}
-                    {endif}
-                    l1 l5 < (L.L._r9) && l0 4 = ! l2 l6 < (L.L._r9) && l3 l4 && l2 l7 < l4 (L.L._r8) > || && || && ||
-                    {if}
-                        1 (S.L.ai_ovh_lights_on)
-                        (C.L.ai_lighting_thresholds_initial_departure_tolerance)
-                            (C.L.ai_lighting_thresholds_initial_brightness_departure_tolerance_variation) random +
-                            (S.L.ai_lighting_off_timer) (S.L.ai_lighting_int_off_timer)
-                    {endif}
-                {endif}
-            {endif}
-        {endif}
-        (L.L.ai_lighting_profile) s0 1 > l0 4 < &&
-        {if}
-            600 random 10 / s0
-            2 random 0 =
-            {if}
-                l0 /-/ s0
-            {endif}
-            l0 60 / (S.L.ai_lighting_int_front_on_variation)
-            600 random 10 / s0
-            2 random 0 =
-            {if}
-                l0 /-/ s0
-            {endif}
-            l0 60 / (S.L.ai_lighting_int_front_off_variation)
+                (S.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer) 60 random 10 + - 10 random 5 + max (S.L.ai_lighting_int_brightness_tolerance)
+                (S.L.ai_lighting_int_off_timer)
+            (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
+                (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
+                (S.L.ai_lighting_actualization_threshold)
+            100 random 40 < (S.L.ai_lighting_service_trip_int_off)
+            0 (S.L.ai_lighting_actualization_timer) (S.L.ai_ovh_lights_on) (S.L.ai_ovh_int_lights_on) (S.L.ai_lighting_initialized)
         {endif}
 	{endif}
     
-        
+    25000 random 1000 / (S.L.ai_ext_stop_ext_light_dimming_delay)
+    1 25000 random 1000 / + (S.L.ai_ext_stop_ext_light_resetting_delay)
+    50000 random 10000 / (S.L.ai_ext_stop_ext_light_resetting_delay_alt)
+    -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt)
+    
+    10000 random 1000 / (S.L.ai_ext_stop_indicator_off_delay)
+    1 10000 random 1000 / + (S.L.ai_ext_stop_indicator_on_delay)
+    30000 random 10000 / (S.L.ai_ext_stop_indicator_on_delay_alt)
+    -1 (S.L.ai_ext_stop_indicator_on_time_alt)
 {end}
 
 {macro:lights_startblinkgeber}
-
 	(L.L.elec_busbar_main) 0.4 >  (L.L.elec_busbar_avail) 0.4 >  (L.L.lights_sw_warnblinker) && || 
 	(L.L.lights_blinker_running) ! &&
 	{if}
@@ -573,9 +657,7 @@
 	(L.L.elec_busbar_main) 0.4 >  (L.L.lights_sw_blinker) &&
 	(L.L.elec_busbar_avail) 0.4 >  (L.L.lights_sw_warnblinker) && ||
 	{if}
-
 		(L.S.Timegap) (L.L.lights_blinker_runtime) + (S.L.lights_blinker_runtime)
-
 		(L.L.lights_blinker_runtime) (L.L.lights_blinkgeber_timegap) > (L.L.lights_sw_blinker) (L.L.lights_sw_warnblinker) || && 
 		{if}
 			(L.L.lights_blinkgeber) ! (S.L.lights_blinkgeber)
@@ -586,13 +668,10 @@
 				(T.L.ev_lights_blinker_off)
 				(C.L.lights_blinkertime_off)
 			{endif}
-
 			(L.L.lights_blinkgeber_faktor) *
-
 			(S.L.lights_blinkgeber_timegap)
 			0 (S.L.lights_blinker_runtime)
 		{endif}
-
 		(L.L.lights_sw_warnblinker)
 		{if}
 			(L.L.lights_blinkgeber) (S.L.lights_warnblinkgeber)
@@ -602,14 +681,9 @@
 	{else}
 		0 (S.L.lights_blinkgeber) (S.L.lights_warnblinkgeber) (S.L.lights_blinker_runtime) (S.L.lights_blinker_running)
 	{endif}
-
-
-
-	
 {end}
 
 {macro:lights_lifetimecalc}
-
 {end}
 
 {macro:lights_malfunction_minute_trigger}
@@ -747,15 +821,32 @@
 
 {macro:set_lighting_regs}
     (L.L.ai_lighting_profile) s0
-    (L.S.SunAlt) 0 max 90 min s1
-    (L.L.Envir_Brightness) 0 max 1 min s2
-    (L.L.PrecipType) 0 max 2 min s3
-    (L.L.PrecipRate) 0 max 1 min s4
+    (L.L.ai_sun_alt) s1
+    (L.L.ai_env_brightness) s2
+    (L.L.ai_precip_rate) s3
+{end}
+
+{macro:is_sufficiently_dark_initial_perm_on}
+    l1 (L.L.ai_lighting_sun_elevation_threshold) 0.1 - < l0 4 = ! l2 (L.L.ai_lighting_brightness_threshold) 0.01 - 0 max < l3 l2
+        (L.L.ai_lighting_brightness_threshold_under_precipitation) 0.01 - 0 max < l3 (L.L.ai_lighting_precipitation_threshold) 0.01 + > ||
+        && || && || s5
+{end}
+
+{macro:is_sufficiently_dark_initial_temp_off}
+    l1 (L.L.ai_lighting_sun_elevation_threshold) < l0 4 = ! l2 (L.L.ai_lighting_brightness_threshold) < l3 l2
+        (L.L.ai_lighting_brightness_threshold_under_precipitation) < l3 (L.L.ai_lighting_precipitation_threshold) > ||
+        && || && || (L.L._r9) ! && s5
+{end}
+
+{macro:is_sufficiently_dark_initial_temp_on}
+    l1 (L.L.ai_lighting_sun_elevation_threshold) 0.1 + < l0 4 = ! l2 (L.L.ai_lighting_brightness_threshold) 0.01 + 1 min < l3 l2
+        (L.L.ai_lighting_brightness_threshold_under_precipitation) 0.01 + 1 min < l3 (L.L.ai_lighting_precipitation_threshold) 0.01 - 0 max > ||
+        && || && || (L.L._r9) && s5
 {end}
 
 {macro:is_sufficiently_dark}
-    l1 (L.L.ai_lighting_sun_elevation_threshold) < l0 4 = ! l2 (L.L.ai_lighting_brightness_threshold) < l3 l4 && l2
-        (L.L.ai_lighting_brightness_threshold_under_precipitation) < l4 (L.L.ai_lighting_precipitation_threshold) > ||
+    l1 (L.L.ai_lighting_sun_elevation_threshold) < l0 4 = ! l2 (L.L.ai_lighting_brightness_threshold) < l3 l2
+        (L.L.ai_lighting_brightness_threshold_under_precipitation) < l3 (L.L.ai_lighting_precipitation_threshold) > ||
         && || && || s5
 {end}
 
@@ -764,21 +855,18 @@
     {if}
         l0 4 = !
         {if}
-            l2 (L.L.ai_lighting_brightness_threshold) 0.1 - (C.L.ai_lighting_profile_3_min_brightness) 0.05 - max < s6 !
+            l2 (L.L.ai_lighting_brightness_threshold) 0.05 - < s6 !
             {if}
-                l3 l4 &&
+                l3
                 {if}
-                    l2 (L.L.ai_lighting_brightness_threshold_under_precipitation) 0.1 - (C.L.ai_lighting_profile_3_min_brightness_under_precipitation)
-                        0.05 - max < s6 !
+                    l2 (L.L.ai_lighting_brightness_threshold_under_precipitation) 0.05 - < s6 !
                     {if}
-                        l4 (L.L.ai_lighting_precipitation_threshold) 0.1 + (C.L.ai_lighting_profile_2_max_precipitation) 0.1 + min > s6
+                        l3 (L.L.ai_lighting_precipitation_threshold) 0.05 + > s6
                     {endif}
                 {endif}
             {endif}
         {else}
-            l1 (L.L.ai_lighting_sun_elevation_threshold) 10 + < l2 (L.L.ai_lighting_brightness_threshold) 0.1 - (C.L.ai_lighting_profile_3_min_brightness)
-                0.05 - max < && s6
+            l1 (L.L.ai_lighting_sun_elevation_threshold) 15 + < l2 (C.L.ai_lighting_profile_3_min_brightness) 0.05 - < && s6
         {endif}
     {endif}
-
 {end}

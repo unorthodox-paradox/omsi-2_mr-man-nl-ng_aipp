@@ -97,34 +97,25 @@
 	353 (M.V.NrSpecRandom) 0.8 * 0.1 + (S.L.cp_Fahrgastpendel_2_reib)
 	354 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_refl)
 	355 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_2_refl)
+    
+    3 10000 random 1000 / + (S.L.ai_ext_stop_hand_brake_setting_delay)
+    3 10000 random 1000 / + (S.L.ai_ext_stop_hand_brake_release_delay)
+    50000 random 10000 / (S.L.ai_ext_stop_hand_brake_release_delay_alt)
+    -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
+    
+    1 (S.L.cockpit_gang3)
+    4 (S.L.antrieb_getr_gangvorwahl)
+
+    3 10000 random 1000 / + (S.L.ai_ext_stop_gear_disengagement_delay)
+    3 10000 random 1000 / + (S.L.ai_ext_stop_gear_engagement_delay)
+    50000 random 10000 / (S.L.ai_ext_stop_gear_engagement_delay_alt)
+    -1 (S.L.ai_ext_stop_gear_engagement_time_alt)
 	
 {end}
 
 '----------------------
 '	Frame
 '----------------------
-{macro:cockpit_frame_ai}
-    (L.L.cp_wischer_schnell_sw) (S.L.wiper_schnell_sw)
-	(L.L.cp_wischer_einaus_sw) (S.L.wiper_einaus_sw)
-	(L.L.cp_wischer_intervall_sw) (S.L.wiper_intervall_sw)
-    (L.L.cp_wischer_intervall_sw)
-    {if}
-        0.085
-    {else}
-        (L.L.cp_wischer_schnell_sw)
-        {if}
-            0.915
-        {else}
-            (L.L.cp_wischer_einaus_sw)
-            {if}
-                0.665
-            {else}
-                0.335
-            {endif}
-        {endif}
-    {endif}
-    (S.L.cockpit_wischer_drehschalter)
-{end}
 
 {macro:cockpit_frame}
 'Übertragen der Schalterstellungen:
@@ -151,6 +142,120 @@
         {endif}
     {endif}
     (S.L.cockpit_wischer_drehschalter)
+    
+    (L.L.AI)
+    {if}
+        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_engage_hand_brake) &&
+            (L.L.ai_stop_timer) (L.L.ai_ext_stop_hand_brake_setting_delay) (L.L.ai_estimated_stop_duration) 9 / min > && (L.L.ai_stop_timer)
+            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_hand_brake_release_delay) - (L.L.ai_estimated_stop_duration) d 9 / - max < && s0
+            (L.L.bremse_feststell_sw) ! &&
+        {if}
+            1 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
+            (T.L.ev_bremse_feststell_ein)
+        {else}
+            l0 ! (L.L.bremse_feststell_sw) &&
+            {if}
+                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = &&
+                {if}
+                    (L.S.Time) (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt) (C.L.secs_per_day) >=
+                    {if}
+                        (C.L.secs_per_day) (L.S.Time) - (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt)
+                    {endif}
+                {else}
+                    (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_hand_brake_release_time_alt) > ||
+                    {if}
+                        0 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
+                        (T.L.ev_bremse_feststell_aus)
+                        (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = !
+                        {if}
+                            -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        
+        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_disengage_gear) &&
+            (L.L.ai_stop_timer) (L.L.ai_ext_stop_gear_disengagement_delay) (L.L.ai_estimated_stop_duration) 8 / min > && (L.L.ai_stop_timer)
+            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_gear_engagement_delay) - (L.L.ai_estimated_stop_duration) d 8 / - max
+            (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s0 (L.L.antrieb_getr_gangvorwahl) 4 = &&
+        {if}
+            (T.L.ev_gangwahltaster_N)
+            1 (S.L.antrieb_getr_gangvorwahl)
+            0 (S.L.cockpit_gang3)
+        {else}
+            l0 ! (L.L.antrieb_getr_gangvorwahl) 1 = &&
+            {if}
+                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = &&
+                {if}
+                    (L.S.Time) (L.L.ai_ext_stop_gear_engagement_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
+                        max s1 + (S.L.ai_ext_stop_gear_engagement_time_alt) (C.L.secs_per_day) >=
+                    {if}
+                        (C.L.secs_per_day) (L.S.Time) - l1 + (S.L.ai_ext_stop_gear_engagement_time_alt)
+                    {endif}
+                {else}
+                    (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_gear_engagement_time_alt) > ||
+                    {if}
+                        (T.L.ev_gangwahltaster)
+                        4 (S.L.antrieb_getr_gangvorwahl)
+                        1 (S.L.cockpit_gang3)
+                        (L.L.ai_ext_stop_gear_engagement_time_alt) - 1 = !
+                        {if}
+                            -1 (S.L.ai_ext_stop_gear_engagement_time_alt)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        
+        (L.L.cp_fahrerfenster_pos) (S.L._r10) (L.L.ai_cp_fahrerfenster_pos_target) (S.L._r11) 1 (S.L._r12)
+        (L.L._r10) (L.L._r11) = !
+        {if}
+            1 (S.L.cp_fahrerfenster_speed)
+        {else}
+            0 (S.L.cp_fahrerfenster_speed)
+        {endif}
+        (M.L.from_r10_to_r11_at_r12_linear) (L.L._r10) (S.L.cp_fahrerfenster_pos)
+        (L.L._r10) (L.L._r11) = (L.L.cp_fahrerfenster_speed) &&
+        {if}
+            (L.L._r11) 1 =
+            {if}
+                (T.L.ev_fahrerfenster_opn)
+            {else}
+                (L.L._r11) !
+                {if}
+                    (T.L.ev_fahrerfenster_cls)
+                {endif}
+            {endif}
+        {endif}
+        
+        (L.L.cp_rollo_pos) (S.L._r10) (L.L.ai_cp_rollo_pos_target) (S.L._r11) 1 (S.L._r12)
+        (L.L._r10) (L.L._r11) = !
+        {if}
+            1 (S.L.cp_rollo_speed)
+            (L.L._r10) (L.L._r11) >
+            {if}
+                1 (S.L.cp_rollo_bommel)
+            {endif}
+        {else}
+            0 (S.L.cp_rollo_speed) (S.L.cp_rollo_bommel)
+        {endif}
+        (M.L.from_r10_to_r11_at_r12_linear) (L.L._r10) (S.L.cp_rollo_pos)
+        (L.L._r10) (L.L._r11) = (L.L.cp_rollo_speed) &&
+        {if}
+            (T.L.ev_rollo_end)
+        {endif}
+        
+        (L.L.doorTarget_0) (L.L.door_0) 0.07 < && (L.L.doorTarget_0) ! (L.L.door_0) 0.93 > && || (S.L.cockpit_tuertaster1)
+        
+        (L.L.doorTarget_1) (L.L.door_1) 0.07 < && (L.L.doorTarget_1) ! (L.L.door_1) 0.93 > && || (S.L.cockpit_tuertaster2)
+        
+    {else}
+        (L.L.cp_fahrerfenster_pos) (S.L.ai_cp_fahrerfenster_pos_target)
+        (L.L.cp_rollo_pos) (S.L.ai_cp_rollo_pos_target)
+        0 (S.L.cp_fahrerfenster_speed) (S.L.cp_rollo_speed) (S.L.cp_rollo_bommel) (S.L.cockpit_tuertaster1) (S.L.cockpit_tuertaster2)
+        -1 (S.L.ai_ext_stop_hand_brake_release_time_alt) (S.L.ai_ext_stop_gear_engagement_time_alt)
+    {endif}
 
 	(M.L.tacho_frame)
 	(M.L.uhr_frame)
@@ -444,37 +549,6 @@
 	l1 (S.L.cockpit_motortemperaturwinkel)
 {end}
 
-{macro:kippschaltersound}
-	l1
-	{if}
-		(T.L.ev_kippschalter_ein)
-	{else}
-		(T.L.ev_kippschalter_aus)
-	{endif}	
-{end}
-
-{macro:klappfenstersound}
-	l1
-	{if}
-		(T.L.ev_klappfenster_opn)
-	{else}
-		(T.L.ev_klappfenster_cls)
-	{endif}	
-{end}
-
-{macro:klappfenstersound_T}
-	l1
-	{if}
-		(T.L.ev_klappfenster_opn_T)
-	{else}
-		(T.L.ev_klappfenster_cls_T)
-	{endif}	
-{end}
-
-
-
-
-
 {macro:schluessel_frame}
 
 	(L.L.cp_schluessel_trans_lastmode) (L.L.cp_schluessel_trans_mode) = !
@@ -490,8 +564,6 @@
 	{endif}
 	(L.L.cp_schluessel_rot_mode) (S.L.cp_schluessel_rot_lastmode)
 {end}
-
-
 
 {macro:traegheit}
 
@@ -666,46 +738,135 @@
 {end}
 
 {macro:trg_cp_klappfenster_1}
-    l1 (S.L.cp_klappfenster_1)
+    l1 (L.L.cp_klappfenster_1) = !
+    {if}
+        l1 (S.L.cp_klappfenster_1)
+        (M.L.klappfenstersound)
+    {endif}
 {end}
 
 {macro:trg_cp_klappfenster_2}
-    l1 (S.L.cp_klappfenster_2)
+    l1 (L.L.cp_klappfenster_2) = !
+    {if}
+        l1 (S.L.cp_klappfenster_2)
+        (M.L.klappfenstersound)
+    {endif}
 {end}
 
 {macro:trg_cp_klappfenster_3}
-	l1 (S.L.cp_klappfenster_3)
+    l1 (L.L.cp_klappfenster_3) = !
+    {if}
+        l1 (S.L.cp_klappfenster_3)
+        (M.L.klappfenstersound_T)
+    {endif}
 {end}
 
 {macro:trg_cp_klappfenster_4}
-	l1 (S.L.cp_klappfenster_4)
+    l1 (L.L.cp_klappfenster_4) = !
+    {if}
+        l1 (S.L.cp_klappfenster_4)
+        (M.L.klappfenstersound_T)
+    {endif}
+{end}
+
+{macro:trg_cp_dachluke_1_initial}
+    l1
+    {if}
+        l1 (S.L.cp_dachluke_1) s0
+        (M.L.dachluke_pos_rot_initial)
+        l1 (S.L.cp_dachluke_1_pos)
+        l2 (S.L.cp_dachluke_1_rot)
+        l3 (S.L.cp_dachluke_1_S1)
+        l4 (S.L.cp_dachluke_1_S2)
+    {endif}
+{end}
+
+{macro:trg_cp_dachluke_2_initial}
+    l1
+    {if}
+        l1 (S.L.cp_dachluke_2) s0
+        (M.L.dachluke_pos_rot_initial)
+        l1 (S.L.cp_dachluke_2_pos)
+        l2 (S.L.cp_dachluke_2_rot)
+        l3 (S.L.cp_dachluke_2_S1)
+        l4 (S.L.cp_dachluke_2_S2)
+    {endif}
+{end}
+
+{macro:trg_cp_dachluke_3_initial}
+    l1
+    {if}
+        l1 (S.L.cp_dachluke_3) s0
+        (M.L.dachluke_pos_rot_initial)
+        l1 (S.L.cp_dachluke_3_pos)
+        l2 (S.L.cp_dachluke_3_rot)
+        l3 (S.L.cp_dachluke_3_S1)
+        l4 (S.L.cp_dachluke_3_S2)
+    {endif}
 {end}
 
 {macro:trg_cp_dachluke_1}
-	l1 (S.L.cp_dachluke_1) s0
-	(M.L.dachluke_pos_rot)
-	l1 (S.L.cp_dachluke_1_pos)
-	l2 (S.L.cp_dachluke_1_rot)
-	l3 (S.L.cp_dachluke_1_S1)
-	l4 (S.L.cp_dachluke_1_S2)
+    l1 (L.L.cp_dachluke_1) = !
+    {if}
+        l1 (S.L.cp_dachluke_1) s0
+        (M.L.dachluke_pos_rot)
+        l1 (S.L.cp_dachluke_1_pos)
+        l2 (S.L.cp_dachluke_1_rot)
+        l3 (S.L.cp_dachluke_1_S1)
+        l4 (S.L.cp_dachluke_1_S2)
+    {endif}
 {end}
 
 {macro:trg_cp_dachluke_2}
-	l1 (S.L.cp_dachluke_2) s0
-	(M.L.dachluke_pos_rot)
-	l1 (S.L.cp_dachluke_2_pos)
-	l2 (S.L.cp_dachluke_2_rot)
-	l3 (S.L.cp_dachluke_2_S1)
-	l4 (S.L.cp_dachluke_2_S2)
+    l1 (L.L.cp_dachluke_2) = !
+    {if}
+        l1 (S.L.cp_dachluke_2) s0
+        (M.L.dachluke_pos_rot)
+        l1 (S.L.cp_dachluke_2_pos)
+        l2 (S.L.cp_dachluke_2_rot)
+        l3 (S.L.cp_dachluke_2_S1)
+        l4 (S.L.cp_dachluke_2_S2)
+    {endif}
 {end}
 
 {macro:trg_cp_dachluke_3}
-	l1 (S.L.cp_dachluke_3) s0
-	(M.L.dachluke_pos_rot)
-	l1 (S.L.cp_dachluke_3_pos)
-	l2 (S.L.cp_dachluke_3_rot)
-	l3 (S.L.cp_dachluke_3_S1)
-	l4 (S.L.cp_dachluke_3_S2)
+    l1 (L.L.cp_dachluke_3) = !
+    {if}
+        l1 (S.L.cp_dachluke_3) s0
+        (M.L.dachluke_pos_rot)
+        l1 (S.L.cp_dachluke_3_pos)
+        l2 (S.L.cp_dachluke_3_rot)
+        l3 (S.L.cp_dachluke_3_S1)
+        l4 (S.L.cp_dachluke_3_S2)
+    {endif}
+{end}
+
+{macro:dachluke_pos_rot_initial}
+	l0 0.5 <=
+	{if}
+		0 s1 s2 s3 s4
+	{else}
+	l0 1.5 <=
+	{if}
+		0.5 s1
+		1 s2
+		0.80 s3
+		0.10 s4
+	{else}
+	l0 2.5 <=
+	{if}
+		1 s1
+		0 s2
+		1 s3
+		1 s4
+	{else}
+		0.5 s1
+		-1 s2
+		0.10 s3
+		0.80 s4
+	{endif}
+	{endif}
+	{endif}
 {end}
 
 {macro:dachluke_pos_rot}
@@ -738,4 +899,31 @@
 	{endif}
 	{endif}
 	{endif}
+{end}
+
+{macro:kippschaltersound}
+	l1
+	{if}
+		(T.L.ev_kippschalter_ein)
+	{else}
+		(T.L.ev_kippschalter_aus)
+	{endif}	
+{end}
+
+{macro:klappfenstersound}
+	l1
+	{if}
+		(T.L.ev_klappfenster_opn)
+	{else}
+		(T.L.ev_klappfenster_cls)
+	{endif}	
+{end}
+
+{macro:klappfenstersound_T}
+	l1
+	{if}
+		(T.L.ev_klappfenster_opn_T)
+	{else}
+		(T.L.ev_klappfenster_cls_T)
+	{endif}	
 {end}
