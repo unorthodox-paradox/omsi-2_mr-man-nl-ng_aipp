@@ -109,10 +109,8 @@
     1 (S.L.door1_physblock) (S.L.doorEntriegelung_doorActive_01) (S.L.doorEntriegelung_doorActive_23)
         (S.L.doorEntriegelung_doorActive_45)
     
-    7 600 random 100 / + (S.L.t1)
-    17 600 random 100 / + (S.L.t2)
-    25 300 random 100 / + (S.L.t3)
-    29 600 random 100 / + (S.L.t4)
+    7 600 random 100 / + (S.L.t1) 7 400 random 100 / + + 17 max 21 min (S.L.t2) 3 200 random 100 / + + 22 max 24 min (S.L.t3)
+        3 800 random 100 / + + 26 max 32 min (S.L.t4)
 
     -5 15 random + (S.L.ai_door_daytime_begin)
     0.01 20 random 100 / + (S.L.ai_door_precip_begin)
@@ -122,29 +120,62 @@
     10 random 10 / (L.L.ai_front_door_max_open_pos_on_departure_low) max 1 min (S.L.ai_front_door_max_open_pos_on_departure_high)
     -1 (S.L.ai_depart_with_front_door_open)
     
+    90 30000 random 100 / + (S.L.ai_extended_stop_min_duration)
+    60 12000 random 100 / + (L.L.ai_extended_stop_min_duration) min (S.L.ai_terminus_stop_min_duration_for_door_opening_neutral_to_chilly)
+    30 12000 random 100 / + (L.L.ai_terminus_stop_min_duration_for_door_opening_neutral_to_chilly) min
+        (S.L.ai_terminus_stop_min_duration_for_door_opening_ideal)
+    10 6000 random 100 / + (L.L.ai_terminus_stop_min_duration_for_door_opening_ideal) min
+        (S.L.ai_terminus_stop_min_duration_for_door_opening_warm)
+    30 12000 random 100 / + (L.L.ai_extended_stop_min_duration) min (S.L.ai_terminus_stop_min_duration_for_door_opening_hot)
+    
     10 random (S.L.ai_use_sun_blind)
-    5 random (S.L.ai_sun_blind_daytime_begin)
+    1 1000 random 100 / + (S.L.ai_sun_blind_daytime_begin)
     10 20 random + (S.L.ai_sun_blind_midday_begin)
     0.2 30 random 100 / + (S.L.ai_sun_blind_pos_low)
     0.3 40 random 100 / + (L.L.ai_sun_blind_pos_low) max 0.7 min (S.L.ai_sun_blind_pos_high)
+    0.6 200 random 1000 / + (S.L.ai_sun_blind_min_env_brightness_factor)
     10 300 random + (S.L.ai_sun_blind_env_tolerance)
+
+    0 (S.L.ai_driver_window_actualization_timer) (S.L.ai_passenger_window_hatch_actualization_timer) (S.L.ai_driver_window_actualization_pending)
+        (S.L.ai_passenger_window_hatch_actualization_pending) (S.L.ai_driver_window_actualization_context)
+        (S.L.ai_passenger_window_hatch_actualization_context)
+    15 30000 random 100 / + (S.L.ai_driver_window_actualization_threshold_warm)
+    5 10000 random 100 / + (S.L.ai_driver_window_actualization_threshold_cold)
+    120 90000 random 100 / + (S.L.ai_passenger_window_hatch_actualization_threshold_warm)
+    60 30000 random 100 / + (S.L.ai_passenger_window_hatch_actualization_threshold_cold)
     
-    (M.L.ai_env_perception_changed) (L.L.ai_env_perception) (S.L.ai_env_perception_prev)
-    (M.L.ai_adjust_driver_window)
-    (M.L.ai_adjust_hatches_and_passenger_windows)
-    (M.L.ai_adjust_sun_blind_initial)
+    5 25000 random 1000 / + (S.L.ai_ext_stop_env_hot_dry_driver_window_opening_delay)
+    50000 random 10000 / (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay)
+    20000 random 10000 / (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay_alt)
+    -1 (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
     
-    (M.L.ai_can_initially_depart_with_front_door_open) l1 (S.L.ai_arrived_with_front_door_open)
-    {if}
-        1 (S.L.door_0) (S.L.door_1) (S.L.doorTarget_0) (S.L.doorTarget_1)
-        (L.L.AI_Scheduled_AtStation) -1 =
-        {if}
-            0 (S.L.AI_Scheduled_AtStation)
-        {endif}
-    {endif}
+    0 (S.L.ai_env_perception_initialized)
+
 {end}
 
 {macro:Door_Frame}
+    (L.L.ai_env_perception_initialized) !
+    {if}
+        (M.L.ai_env_perception_changed) (L.L.ai_env_perception) (S.L.ai_env_perception_prev)
+            (L.L.ai_env_perception_daytime) (S.L.ai_env_perception_prev_daytime) (L.L.ai_env_perception_rainy) (S.L.ai_env_perception_prev_rainy)
+        0 (S.L.ai_env_perception_changed) (S.L.ai_env_warmer_than_before) (S.L.ai_env_brighter_than_before) (S.L.ai_env_drier_than_before)
+            (S.L.ai_env_colder_than_before) (S.L.ai_env_darker_than_before) (S.L.ai_env_wetter_than_before)
+        (M.L.ai_adjust_driver_window_initial)
+        (M.L.ai_adjust_hatches_and_passenger_windows_initial)
+        (L.L.ai_env_perception) (S.L.ai_driver_window_last_used_env_perception) (S.L.ai_passenger_window_hatch_last_used_env_perception)
+        (M.L.ai_adjust_sun_blind_initial)
+
+        (M.L.ai_can_depart_with_front_door_open_initial) (L.L.ai_arrived_with_front_door_open)
+        {if}
+            1 (S.L.door_0) (S.L.door_1) (S.L.doorTarget_0) (S.L.doorTarget_1)
+                (L.L.AI_Scheduled_AtStation) -1 =
+            {if}
+                0 (S.L.AI_Scheduled_AtStation)
+            {endif}
+        {endif}
+
+        1 (S.L.ai_env_perception_initialized)
+    {endif}
 
 'Anforderung mit neuen Variablen:
 
@@ -692,164 +723,512 @@
 '###############################################################################################
 '	AI-Ablauf:
     
-    (L.L.AI_Scheduled_AtStation) (S.L._r8) (L.L.AI) ||
+    (L.L.AI)
     {if}
+        (L.L.AI_Scheduled_AtStation) (S.L._r8)
         (M.L.ai_env_perception_changed)
+        (L.L.ai_env_perception) (S.L._r9)
         (M.L.ai_has_front_door_entry_req)
         (L.L._r8) 1 = (L.L.ai_stop_arrival_initialized) ! &&
         {if}
             (M.L.ai_is_at_terminus_stop)
             (M.L.ai_is_at_last_pre_terminus_stop)
             (M.L.ai_calc_time_to_dep)
+            (M.L.ai_is_delayed_upon_arrival)
             (M.L.ai_is_at_extended_stop)
-            100 random 50 / 0.5 max 2 min (S.L.ai_stop_brake_setting_delay)
+
+            0.5 150 random 100 / + (S.L.ai_stop_brake_setting_delay)
+            0.3 170 random 100 / + (S.L.ai_front_door_entry_req_trigered_opening_delay)
+            0.5 950 random 100 / + (S.L.ai_front_door_static_actualization_delay)
+            600 random 1000 / (S.L.ai_front_door_first_to_second_wing_opening_interval)
+            600 random 1000 / (S.L.ai_front_door_first_to_second_wing_closing_interval)
+            100 random s0 50 <
+            {if}
+                600 random 1000 /
+            {else}
+                l0 75 <
+                {if}
+                    0.6 2400 random 1000 / +
+                {else}
+                    3 7000 random 1000 / +
+                {endif}
+            {endif}
+            (S.L.ai_front_door_first_to_second_wing_prolonged_closing_interval)
+            0.5 950 random 100 / + (S.L.ai_back_door_static_actualization_delay)
+            1 150 random 100 / + (S.L.ai_front_door_departure_closing_delay)
+            1 500 random 100 / + (S.L.ai_front_door_departure_prolonged_closing_delay)
+            1 500 random 100 / + (S.L.ai_back_door_departure_closing_delay)
+            
+            5 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly)
+            10 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly_rainy)
+            10 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly_night)
+            3 random 0 = (S.L.ai_open_front_door_ext_stop_ideal)
+            5 random 0 = (S.L.ai_open_front_door_ext_stop_ideal_rainy)
+            5 random 0 = (S.L.ai_open_front_door_ext_stop_ideal_night)
+            3 random 0 = (S.L.ai_open_front_door_ext_stop_warm_rainy)
+            
+            3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly)
+            5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_rainy)
+            5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_night)
+            3 random 0 = ! (S.L.ai_open_front_door_prolonged_terminus_stop_ideal)
+            3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_ideal_rainy)
+            3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_ideal_night)
+            2 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_warm_rainy)
+            3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_hot_dry)
+            5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_hot_dry_day)
+            
+            5 random 0 = (S.L.ai_open_front_door_normal_terminus_stop_warm_dry)
+            5 random 0 = (S.L.ai_open_front_door_normal_terminus_stop_warm_dry_night)
+            
+            20 random 0 = (S.L.ai_open_front_door_last_pre_terminus_stop_ideal)
+            10 random 0 = (S.L.ai_open_front_door_last_pre_terminus_stop_warm)
+            
+            25 random 0 = (S.L.ai_open_front_door_normal_stop_ideal_dry_day)
+            15 random 0 = (S.L.ai_open_front_door_normal_stop_warm_dry)
+
             3 random 0 = (S.L.ai_use_door_1_neutral_to_chilly)
             3 random 0 = ! (S.L.ai_use_door_1_ideal)
             5 random 0 = (S.L.ai_use_door_1_hot)
-            10 (L.L.ai_at_last_pre_terminus_stop) (L.L.ai_at_terminus_stop) || (L.L.ai_at_extended_stop) || 5 * - random
-                0 = (L.L.ai_estimated_stop_duration) 30 > && (S.L.ai_open_front_door_unconditionally)
-            5 random 0 = (S.L.ai_override_back_doors)
-            0 (S.L.ai_stop_departure_initialized) (S.L.door_AI_timer) (S.L.ai_stop_timer) (S.L.ai_stop_departure_initialized)
-            -1 (S.L.ai_depart_with_front_door_open)
+            
+            10 random 0 = (S.L.ai_override_back_doors_ext_stop_ideal_dry_day)
+            5 random 0 = (S.L.ai_override_back_doors_ext_stop_warm_dry)
+            3 random 0 = ! (S.L.ai_override_back_doors_ext_stop_hot_dry)
+
+            0 (S.L.ai_stop_departure_initialized) (S.L.door_AI_timer) (S.L.ai_stop_timer)
+
+            10 20 random + (S.L.ai_passenger_window_hatch_actualization_delay_stop)
+            
+            0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+            
+            (L.L.ai_at_extended_stop)
+            {if}
+                (L.L.ai_estimated_stop_duration) 120 <
+                {if}
+                    5 random 0 = (S.L.ai_ext_stop_turn_engine_off)
+                    3 random 0 = (L.L.ai_ext_stop_turn_engine_off) || (S.L.ai_ext_stop_engage_hand_brake)
+                    3 random 0 = (L.L.ai_ext_stop_turn_engine_off) || (S.L.ai_ext_stop_dim_ext_lights)
+                    3 random 0 = (L.L.ai_ext_stop_turn_engine_off) || (S.L.ai_ext_stop_disengage_gear)
+                    3 random 0 = (L.L.ai_ext_stop_turn_engine_off) || (S.L.ai_ext_stop_disable_wipers)
+                    3 random 0 = ! (L.L.ai_ext_stop_turn_engine_off) || (S.L.ai_ext_stop_disable_indicators)
+                {else}
+                    (L.L.ai_estimated_stop_duration) 300 <
+                    {if}
+                        3 random 0 = (S.L.ai_ext_stop_turn_engine_off)
+                    {else}
+                        5 random 0 = ! (S.L.ai_ext_stop_turn_engine_off)
+                    {endif}
+                    1 (S.L.ai_ext_stop_engage_hand_brake) (S.L.ai_ext_stop_dim_ext_lights) (S.L.ai_ext_stop_disengage_gear)
+                        (S.L.ai_ext_stop_disable_wipers) (S.L.ai_ext_stop_disable_indicators)
+                {endif}
+            {else}
+                0 (S.L.ai_ext_stop_turn_engine_off) (S.L.ai_ext_stop_engage_hand_brake) (S.L.ai_ext_stop_dim_ext_lights)
+                    (S.L.ai_ext_stop_disengage_gear) (S.L.ai_ext_stop_disable_wipers) (S.L.ai_ext_stop_disable_indicators)
+            {endif}
+            
+            (M.L.ai_calc_front_door_static_opening_preconditions)
+            (M.L.ai_calc_back_door_static_opening_preconditions)
+            
             1 (S.L.ai_stop_arrival_initialized)
         {endif}
-        l1 (L.L.ai_hatch_and_passenger_window_adjustment_pending) ||
+        (L.L.ai_env_perception_changed)
         {if}
-            l1
+            0 (S.L.ai_driver_window_actualization_timer) (S.L.ai_passenger_window_hatch_actualization_timer)
+            (L.L._r9) (L.L.ai_driver_window_last_used_env_perception) =
             {if}
+                0 (S.L.ai_driver_window_actualization_pending)
+            {else}
                 (M.L.ai_adjust_driver_window)
+                1 (S.L.ai_driver_window_actualization_pending)
+                (L.L.ai_env_warmer_brighter_drier_than_before) (S.L.ai_driver_window_actualization_context)
             {endif}
-            (L.L._r8) 1 = ! (L.L.bremse_halte) ! ||
+            (L.L._r9) (L.L.ai_passenger_window_hatch_last_used_env_perception) =
             {if}
-                1 (S.L.ai_hatch_and_passenger_window_adjustment_pending)
+                0 (S.L.ai_passenger_window_hatch_actualization_pending)
             {else}
                 (M.L.ai_adjust_hatches_and_passenger_windows)
-                0 (S.L.ai_hatch_and_passenger_window_adjustment_pending)
+                1 (S.L.ai_passenger_window_hatch_actualization_pending)
+                (L.L.ai_env_warmer_brighter_drier_than_before) (S.L.ai_passenger_window_hatch_actualization_context)
+            {endif}
+        {endif}
+        (L.L.ai_driver_window_actualization_pending)
+        {if}
+            (L.L.ai_driver_window_actualization_context)
+            {if}
+                (L.L.ai_driver_window_actualization_threshold_warm)
+            {else}
+                (L.L.ai_driver_window_actualization_threshold_cold)
+            {endif}
+            s4
+            (L.L.ai_driver_window_actualization_timer) l4 <
+            {if}
+                (L.L.ai_driver_window_actualization_timer) (L.L.ai_timegap) + l4 min (S.L.ai_driver_window_actualization_timer)
+            {endif}
+            (L.L.ai_driver_window_actualization_timer) l4 =
+            {if}
+                (L.L.ai_cp_fahrerfenster_pos_target_delayed) (S.L.ai_cp_fahrerfenster_pos_target)
+                0 (S.L.ai_driver_window_actualization_pending) (S.L.ai_driver_window_actualization_timer)
+                (L.L.ai_env_perception) (S.L.ai_driver_window_last_used_env_perception)
+            {endif}
+        {endif}
+        (L.L.ai_passenger_window_hatch_actualization_pending)
+        {if}
+            (L.L.ai_driver_window_actualization_context)
+            {if}
+                (L.L.ai_passenger_window_hatch_actualization_threshold_warm)
+            {else}
+                (L.L.ai_passenger_window_hatch_actualization_threshold_cold)
+            {endif}
+            s4
+            (L.L.ai_passenger_window_hatch_actualization_timer) l4 <
+            {if}
+                (L.L.ai_passenger_window_hatch_actualization_timer) (L.L.ai_timegap) + l4 min (S.L.ai_passenger_window_hatch_actualization_timer)
+            {endif}
+            (L.L.ai_passenger_window_hatch_actualization_timer) l4 = (L.L.bremse_halte) && (L.L._r8) 1 = (L.L.ai_stop_timer)
+                (L.L.ai_passenger_window_hatch_actualization_delay_stop) > && (L.L.ai_unscheduled_stop_initialized) 2 =
+                (L.L.ai_unscheduled_stop_timer) (L.L.ai_passenger_window_hatch_actualization_delay_stop) > && || &&
+            {if}
+                (L.L.ai_cp_klappfenster_1_delayed) s1 (M.L.trg_cp_klappfenster_1)
+                (L.L.ai_cp_klappfenster_2_delayed) s1 (M.L.trg_cp_klappfenster_2)
+                (L.L.ai_cp_klappfenster_3_delayed) s1 (M.L.trg_cp_klappfenster_3)
+                (L.L.ai_cp_klappfenster_4_delayed) s1 (M.L.trg_cp_klappfenster_4)
+                (L.L.ai_cp_dachluke_1_delayed) s1 (M.L.trg_cp_dachluke_1)
+                (L.L.ai_cp_dachluke_2_delayed) s1 (M.L.trg_cp_dachluke_2)
+                (L.L.ai_cp_dachluke_3_delayed) s1 (M.L.trg_cp_dachluke_3)
+                0 (S.L.ai_passenger_window_hatch_actualization_pending) (S.L.ai_passenger_window_hatch_actualization_timer)
+                (L.L.ai_env_perception) (S.L.ai_passenger_window_hatch_last_used_env_perception)
             {endif}
         {endif}
         (M.L.ai_adjust_sun_blind)
+    {else}
+        0 (S.L.ai_driver_window_actualization_timer) (S.L.ai_passenger_window_hatch_actualization_timer) (S.L._r8)
     {endif}
-    (L.L.ai_env_perception) (S.L._r9)
     (L.L._r8)
     {if}
         0 (S.L.ai_unscheduled_stop_initialized) (S.L.door_20h_sw)
     {endif}
     (L.L._r8) 1 =
     {if}
-' Wenn Türen geöffnet werden sollen:
         (L.L.Velocity) (C.L.Door_Bremse_Halte_MaxKMH) <
         {if}
-'Nur, wenn v < maxkmh, sonst warten
-'Taster jeweils nur betätigen, falls noch nicht an
-            (L.L.bremse_halte_sw) ! (L.L.door_AI_timer) (L.L.ai_stop_brake_setting_delay) > &&
+            (L.L.bremse_halte_sw) !
             {if}
-                1 (S.L.bremse_halte_sw)
-                (T.L.ev_haltebremse_sw_an)
-                0 (S.L.door_AI_timer)
+                (L.L.ai_stop_brake_last_op) 1 = !
+                {if}
+                    1 (S.L.ai_stop_brake_last_op)
+                    (L.L._game_time) (L.L.ai_stop_brake_setting_delay) + (S.L.ai_stop_brake_last_trigered)
+                {endif}
+                (L.L._game_time) (L.L.ai_stop_brake_last_trigered) >
+                {if}
+                    1 (S.L.bremse_halte_sw)
+                    (T.L.ev_haltebremse_sw_an)
+                    0 (S.L.ai_stop_brake_last_op)
+                {endif}
             {endif}
 
             (L.L.bremse_halte_sw)
             {if}
-                (L.L._r9) 40 > (L.L.ai_at_terminus_stop) (L.L.ai_at_extended_stop) || && (L.L.ai_override_back_doors) &&
-                (S.L.ai_override_back_doors_preconditions) (L.L.door_handsteuerung) ! && (L.L.door_AI_timer) 3 > (L.L.doorTarget_23) || &&
+                
+                (L.L.ai_env_perception_changed)
                 {if}
-                    1 (S.L.door_handsteuerung)
-                    (T.L.ev_kippschalter_ein)
-                {endif}
-
-                (L.L.ai_front_door_entry_req) (L.L.ai_env_perception_warm) (L.L.ai_open_front_door_unconditionally) && ||
-                    (L.L.ai_at_terminus_stop) (L.L.ai_at_extended_stop) || (L.L.ai_env_perception_neutral_to_chilly)
-                    (L.L.ai_env_perception_daytime) && (L.L.ai_env_perception_rainy) ! && (L.L.ai_env_perception) 30 > || && ||
-                    (S.L.ai_open_door_0_preconditions)
-            
-                (L.L.ai_open_door_0_preconditions) (L.L.doorTarget_0) ! && (L.L.door_AI_timer) 0.3 >
-                    (L.L.ai_front_door_entry_req) && (L.L.door_AI_timer) 4 > || &&
-                {if}
-                    (M.L.trg_bus_doorfront0)
-                    0 (S.L.door_AI_timer)
+                    (M.L.ai_calc_front_door_static_opening_preconditions)
+                    (M.L.ai_calc_back_door_static_opening_preconditions)
                 {endif}
                 
-                (L.L.doorTarget_0) (L.L.ai_env_perception_neutral_to_chilly) (L.L.ai_use_door_1_neutral_to_chilly) &&
-                    (L.L.ai_env_perception_ideal) (L.L.ai_use_door_1_ideal) && || (L.L.ai_env_perception_warm) ||
-                    (L.L.ai_env_perception_hot) (L.L.ai_use_door_1_hot) (L.L.ai_at_terminus_stop) ||
-                    (L.L.ai_at_extended_stop) || && || && (S.L.ai_open_door_1_preconditions)
-            
-                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_1) ! && (L.L.door_AI_timer) 0.3 > &&
+                (L.L.ai_override_back_doors_preconditions) (L.L.door_handsteuerung) ! &&
                 {if}
-                    (M.L.trg_bus_doorfront1)
-                    0 (S.L.door_AI_timer)
+                    (L.L.ai_door_23_last_op) 1 = !
+                    {if}
+                        1 (S.L.ai_door_23_last_op)
+                        (L.L._game_time) (L.L.ai_back_door_static_actualization_delay) + (S.L.ai_door_23_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_23_last_trigered) > (L.L.doorTarget_23) ||
+                    {if}
+                        1 (S.L.door_handsteuerung)
+                        (T.L.ev_kippschalter_ein)
+                        0 (S.L.ai_door_23_last_op)
+                    {endif}
+                {endif}
+                
+                (L.L.ai_open_door_0_preconditions) (L.L.ai_front_door_entry_req) || (L.L.doorTarget_0) ! &&
+                {if}
+                    (L.L.ai_front_door_entry_req) (L.L.ai_door_0_last_op) 1 = ! (L.L.ai_door_0_last_trigered)
+                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + s1 > || &&
+                    {if}
+                        1 (S.L.ai_door_0_last_op)
+                        l1 (S.L.ai_door_0_last_trigered)
+                    {else}
+                        (L.L.ai_door_0_last_op) 1 = !
+                        {if}
+                            1 (S.L.ai_door_0_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_0_last_trigered)
+                        {endif}
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_0_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront0)
+                        (L.L.ai_open_door_1_preconditions) &&
+                        {if}
+                            1 (S.L.ai_door_1_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
+                        {endif}
+                        0 (S.L.ai_door_0_last_op)
+                    {endif}
                 {endif}
 
-                (L.L.ai_front_door_entry_req) (L.L.doorTarget_0) && (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_1) &&
-                    (L.L.ai_open_door_1_preconditions) ! || &&
+                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_0) && (L.L.doorTarget_1) ! &&
                 {if}
-                    -5 (L.L.ai_at_terminus_stop) (L.L.ai_at_extended_stop) || 10 * - (S.L.door_AI_timer)
+                    (L.L.ai_door_1_last_op) 1 = !
+                    {if}
+                        1 (S.L.ai_door_1_last_op)
+                        (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_1_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront1)
+                        0 (S.L.ai_door_1_last_op)
+                    {endif}
+                {endif}
+                
+                (L.L.ai_override_back_doors_preconditions) ! (L.L.door_handsteuerung) && (L.L._r9) 30 < (L.L._r9) 50 > ||
+                    (L.L.ai_env_perception_rainy) || &&
+                {if}
+                    (L.L.ai_door_23_last_op) 2 = !
+                    {if}
+                        2 (S.L.ai_door_23_last_op)
+                        (L.L._game_time) (L.L.ai_back_door_static_actualization_delay) + (S.L.ai_door_23_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_23_last_trigered) >
+                    {if}
+                        0 (S.L.door_handsteuerung) (S.L.ai_door_23_last_op)
+                        (T.L.ev_kippschalter_aus)
+                    {endif}
+                {endif}
+                
+                (L.L.ai_open_door_1_preconditions) ! (L.L.doorTarget_1) && (L.L._r9) 20 < (L.L._r9) 50 > || &&
+                    (L.L.ai_front_door_entry_req) ! &&
+                {if}
+                    (L.L.ai_door_1_last_op) 2 = !
+                    {if}
+                        2 (S.L.ai_door_1_last_op)
+                        (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_1_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront1)
+                        (L.L.ai_open_door_0_preconditions) !
+                        {if}
+                            2 (S.L.ai_door_0_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_closing_interval) + (S.L.ai_door_0_last_trigered)
+                        {endif}
+                        0 (S.L.ai_door_1_last_op)
+                    {endif}
                 {endif}
 
-                (L.L.door_handsteuerung) (L.L.ai_override_back_doors_preconditions) ! && (L.L._r9) 30 < (L.L._r9) 50 >
-                    (L.L.ai_at_terminus_stop) ! && (L.L.ai_at_extended_stop) ! && || &&
+                (L.L.ai_open_door_0_preconditions) ! (L.L.doorTarget_0) && (L.L._r9) 20 < (L.L._r9) 50 > || &&
+                    (L.L.ai_front_door_entry_req) ! &&
                 {if}
-                    0 (S.L.door_handsteuerung) (S.L.door_AI_timer)
-                    (T.L.ev_kippschalter_aus)
+                    (L.L.ai_door_0_last_op) 2 = !
+                    {if}
+                        2 (S.L.ai_door_0_last_op)
+                        (L.L._game_time) (L.L.ai_front_door_static_actualization_delay) + (S.L.ai_door_0_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_0_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront0)
+                        0 (S.L.ai_door_0_last_op)
+                    {endif}
                 {endif}
-
-                (L.L.doorTarget_1) (L.L.door_AI_timer) 0.3 > && (L.L.ai_open_door_1_preconditions) ! && (L.L._r9) 20 < (L.L._r9) 50 >
-                    (L.L.ai_at_terminus_stop) ! && (L.L.ai_at_extended_stop) ! && || &&
+                
+                (L.L.ai_env_perception_hot) (L.L.ai_env_perception_rainy) ! && (L.L.ai_ext_stop_turn_engine_off) &&
                 {if}
-                    (M.L.trg_bus_doorfront1)
-                    0 (S.L.door_AI_timer)
+                    (L.L.ai_stop_timer) (L.L.ai_ext_stop_env_hot_dry_driver_window_opening_delay) (L.L.ai_estimated_stop_duration) 7 / min >
+                        (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay) -
+                        (L.L.ai_estimated_stop_duration) d 10 / - max < &&
+                    {if}
+                        (L.L.ai_ext_stop_env_hot_dry_opened_driver_window) ! (L.L.ai_cp_fahrerfenster_pos_target) 0.6 < &&
+                        {if}
+                            0.6 40 random 100 / + (S.L.ai_cp_fahrerfenster_pos_target)
+                            (L.L._r9) (S.L.ai_driver_window_last_used_env_perception)
+                            0 (S.L.ai_driver_window_actualization_pending)
+                            1 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+                        {endif}
+                    {else}
+                        (L.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+                        {if}
+                            (L.L.ai_env_perception_daytime)
+                            {if}
+                                25 random 100 /
+                            {else}
+                                100 random 100 /
+                            {endif}
+                            (L.L.ai_cp_fahrerfenster_pos_target) min (S.L.ai_cp_fahrerfenster_pos_target)
+                            0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+                        {endif}
+                    {endif}
+                {else}
+                    0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
                 {endif}
-
-                (L.L.doorTarget_0) (L.L.door_AI_timer) 0.3 > && (L.L.ai_open_door_0_preconditions) ! && (L.L._r9) 20 < (L.L._r9) 50 >
-                    (L.L.ai_at_terminus_stop) ! && (L.L.ai_at_extended_stop) ! && || && (L.L.doorTarget_1) ! &&
-                {if}
-                    (M.L.trg_bus_doorfront0)
-                    0 (S.L.door_AI_timer)
-                {endif}
+                
             {endif}
-            (L.L.door_AI_timer) (L.S.Timegap) + (S.L.door_AI_timer)
-            (L.L.ai_stop_timer) (L.S.Timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
-        {else}
-            0 (S.L.door_AI_timer)
         {endif}
+        (L.L.ai_stop_timer) (L.S.Timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
     {else}
         (L.L._r8) -1 =
         {if}
+
             (L.L.ai_stop_departure_initialized) !
             {if}
                 100 random 50 / 0.5 max 2 min (S.L.ai_stop_brake_release_delay)
-                (L.L.ai_at_terminus_stop)
+                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
                 {if}
-                    -15 (S.L.door_AI_timer)
+                    -15 15000 random 1000 / - (S.L.door_AI_timer)
+                    15000 random 1000 / /-/ (S.L.ai_terminus_stop_delayed_entry_req_departure_delay)
                 {else}
-                    -1 (S.L.door_AI_timer)
+                    0 (S.L.door_AI_timer)
                 {endif}
-                (M.L.ai_can_depart_with_front_door_open) l1 (S.L.ai_depart_with_front_door_open)
                 0 (S.L.ai_stop_arrival_initialized)
                 1 (S.L.ai_stop_departure_initialized)
             {endif}
-            (L.L.ai_depart_with_front_door_open) !
+            
+            (L.L.ai_env_perception_changed)
             {if}
-' Wenn Türen geschlossen werden sollen:
-' Taster jeweils nur betätigen, falls noch nicht aus:
-                (L.L.doorTarget_1) (L.L.door_AI_timer) 1.5 > &&
-                {if}
-                    (M.L.trg_bus_doorfront1)
-                    0 (S.L.door_AI_timer)
-                {endif}
-                (L.L.doorTarget_0) (L.L.doorTarget_1) ! && (L.L.door_AI_timer) 0.3 > &&
-                {if}
-                    (M.L.trg_bus_doorfront0)
-                    0 (S.L.door_AI_timer)
-                {endif}
+                (M.L.ai_calc_front_door_static_opening_preconditions)
+                (M.L.ai_calc_back_door_static_opening_preconditions)
             {endif}
-            (L.L.door_handsteuerung) (L.L.door_AI_timer) 1.8 > &&
+            
+            (L.L.ai_env_perception_hot) (L.L.ai_env_perception_rainy) ! && (L.L.ai_ext_stop_turn_engine_off) &&
+                (L.L.ai_ext_stop_env_hot_dry_opened_driver_window) &&
             {if}
-                0 (S.L.door_handsteuerung) (S.L.door_AI_timer)
-                (T.L.ev_kippschalter_aus)
+                (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) -1 =
+                {if}
+                    (L.S.Time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay_alt) s1 + (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
+                        (C.L.secs_per_day) >=
+                    {if}
+                        (C.L.secs_per_day) (L.S.Time) - l1 + (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
+                    {endif}
+                {else}
+                    (L.S.Time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) >
+                    {if}
+                        (L.L.ai_env_perception_daytime)
+                        {if}
+                            25 random 100 /
+                        {else}
+                            100 random 100 /
+                        {endif}
+                        (L.L.ai_cp_fahrerfenster_pos_target) min (S.L.ai_cp_fahrerfenster_pos_target)
+                        0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+                        -1 (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
+                    {endif}
+                {endif}
             {endif}
 
-' Haltestellenbremse erst wegnehmen, wenn alle Türen zu. Dann auch erst den Bus AI-mäßig freigeben:
+            (L.L.door_handsteuerung)
+            {if}
+                (L.L.ai_door_23_last_op) 2 = !
+                {if}
+                    2 (S.L.ai_door_23_last_op)
+                    (L.L._game_time) (L.L.ai_back_door_departure_closing_delay) + (S.L.ai_door_23_last_trigered)
+                {endif}
+                (L.L._game_time) (L.L.ai_door_23_last_trigered) >
+                {if}
+                    0 (S.L.door_handsteuerung) (S.L.ai_door_23_last_op)
+                    (T.L.ev_kippschalter_aus)
+                {endif}
+            {endif}
+
+            (L.L.ai_front_door_entry_req)
+            {if}
+                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                {if}
+                    (L.L.door_AI_timer) (L.L.ai_terminus_stop_delayed_entry_req_departure_delay) min (S.L.door_AI_timer)
+                {endif}
+                (L.L.doorTarget_0) !
+                {if}
+                    (L.L.ai_door_0_last_op) 1 = !
+                    {if}
+                        1 (S.L.ai_door_0_last_op)
+                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_0_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_0_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront0)
+                        (L.L.ai_open_door_1_preconditions)
+                        {if}
+                            1 (S.L.ai_door_1_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
+                        {endif}
+                        0 (S.L.ai_door_0_last_op)
+                    {endif}
+                {endif}
+                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_1) ! &&
+                {if}
+                    (L.L.ai_door_1_last_op) 1 = !
+                    {if}
+                        1 (S.L.ai_door_1_last_op)
+                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_1_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                    {if}
+                        (M.L.trg_bus_doorfront1)
+                    {endif}
+                    0 (S.L.ai_door_1_last_op)
+                {endif}
+            {else}
+                (L.L.door_AI_timer) 0 >
+                {if}
+                    (M.L.ai_can_depart_with_front_door_open)
+                {endif}
+                (L.L.ai_depart_with_front_door_open) !
+                {if}
+                    (L.L.doorTarget_1)
+                    {if}
+                        (L.L.ai_door_1_last_op) 2 = !
+                        {if}
+                            2 (S.L.ai_door_1_last_op)
+                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                            {if}
+                                (L.L.ai_front_door_departure_prolonged_closing_delay)
+                            {else}
+                                (L.L.ai_front_door_departure_closing_delay)
+                            {endif}
+                            (L.L._game_time) + (S.L.ai_door_1_last_trigered)
+                        {endif}
+                        (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                        {if}
+                            (M.L.trg_bus_doorfront1)
+                            2 (S.L.ai_door_0_last_op)
+                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                            {if}
+                                (L.L.ai_front_door_first_to_second_wing_prolonged_closing_interval)
+                            {else}
+                                (L.L.ai_front_door_first_to_second_wing_closing_interval)
+                            {endif}
+                            (L.L._game_time) + (S.L.ai_door_0_last_trigered)
+                            0 (S.L.ai_door_1_last_op)
+                        {endif}
+                    {endif}
+                    (L.L.doorTarget_0) (L.L.doorTarget_1) ! &&
+                    {if}
+                        (L.L.ai_door_0_last_op) 2 = !
+                        {if}
+                            2 (S.L.ai_door_0_last_op)
+                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                            {if}
+                                (L.L.ai_front_door_departure_prolonged_closing_delay)
+                            {else}
+                                (L.L.ai_front_door_departure_closing_delay)
+                            {endif}
+                            (L.L._game_time) + (S.L.ai_door_0_last_trigered)
+                        {endif}
+                        (L.L._game_time) (L.L.ai_door_0_last_trigered) >
+                        {if}
+                            (M.L.trg_bus_doorfront0)
+                            0 (S.L.ai_door_0_last_op)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+
             (L.L.door_AI_timer) (L.S.Timegap) + (S.L.door_AI_timer)
             (L.L.ai_stop_timer) (L.S.Timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
             
@@ -876,8 +1255,7 @@
                     {else}
                         (L.L.door_AI_timer) (L.L.ai_stop_brake_release_delay) >
                         {if}
-                            0 (S.L.bremse_halte_sw) (S.L.door_AI_timer) (S.L.ai_stop_timer) (S.L.AI_Scheduled_AtStation)
-                                (S.L.ai_stop_departure_initialized)
+                            0 (S.L.bremse_halte_sw) (S.L.AI_Scheduled_AtStation) (S.L.ai_stop_departure_initialized)
                             (T.L.ev_haltebremse_sw_aus)
                             (L.L.ai_depart_with_front_door_open) 0 max 1 min (S.L.ai_arrived_with_front_door_open)
                             -1 (S.L.ai_depart_with_front_door_open)
@@ -887,43 +1265,86 @@
             {else}
                 (L.L.bremse_halte_sw) !
                 {if}
-                    0 (S.L.door_AI_timer) (S.L.ai_stop_timer) (S.L.AI_Scheduled_AtStation) (S.L.ai_stop_departure_initialized)
-                    (L.L.ai_depart_with_front_door_open) 0 max 1 min (S.L.ai_arrived_with_front_door_open)
+                    0 (S.L.AI_Scheduled_AtStation) (S.L.ai_stop_departure_initialized) (L.L.ai_depart_with_front_door_open) 0 max 1 min
+                        (S.L.ai_arrived_with_front_door_open)
                     -1 (S.L.ai_depart_with_front_door_open)
                 {endif}
             {endif}
         {else}
             (L.L.AI)
             {if}
-                0 (S.L.door_AI_timer) (S.L.ai_stop_timer) (S.L.ai_stop_arrival_initialized) (S.L.ai_stop_departure_initialized)
-                (L.L.ai_brake) (L.L.velocity) abs 0.05 < &&
+                0 (S.L.ai_stop_arrival_initialized) (S.L.ai_stop_departure_initialized)
+                (L.L.brake) (L.L.velocity) abs 0.05 < &&
                 {if}
                     (L.L.ai_unscheduled_stop_initialized) !
                     {if}
-                        2 28 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                        3 random 1 =
+                        {if}
+                            6 random s7 2 <
+                            {if}
+                                0.3 3 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                            {else}
+                                l7 5 <
+                                {if}
+                                    5 25 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                                {else}
+                                    30 60 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                                {endif}
+                            {endif}
+                            1 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
+                        {else}
+                            0 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
+                        {endif}
+                        0 (S.L.ai_stop_brake_sw_timer) (S.L.ai_unscheduled_stop_wait_op_pending)
                         1 (S.L.ai_unscheduled_stop_initialized)
                     {endif}
-                    (L.L.door_20h_sw) !
+                    (M.L.ai_can_depart_with_front_door_open_unscheduled_stop) l1 ! (L.L.ai_unscheduled_stop_initialized) 1 = && (L.L.ai_arrived_with_front_door_open) &&
+                    {if}
+                        1 (S.L.ai_engage_stop_brake_at_unscheduled_stop) (S.L.ai_unscheduled_stop_wait_op_pending)
+                        (L.L.ai_standstill_stop_brake_usage_threshold) (S.L.ai_stop_brake_sw_timer)
+                    {endif}
+                    (L.L.ai_engage_stop_brake_at_unscheduled_stop) (L.L.ai_unscheduled_stop_initialized) 1 = &&
                     {if}
                         (L.L.ai_stop_brake_sw_timer) (L.L.ai_standstill_stop_brake_usage_threshold) <
                         {if}
-                            (L.L.ai_stop_brake_sw_timer) (L.S.Timegap) + (S.L.ai_stop_brake_sw_timer)
-                        {else}
+                            (L.L.ai_stop_brake_sw_timer) (L.S.Timegap) + (L.L.ai_standstill_stop_brake_usage_threshold) min (S.L.ai_stop_brake_sw_timer)
+                        {endif}
+                        (L.L.ai_stop_brake_sw_timer) (L.L.ai_standstill_stop_brake_usage_threshold) =
+                        {if}
+                            2 (S.L.ai_unscheduled_stop_initialized)
                             1 (S.L.door_20h_sw)
                             (T.L.ev_haltebremse_sw_an)
-                            0 (S.L.ai_stop_brake_sw_timer)
+                            0 (S.L.ai_unscheduled_stop_timer) (S.L.door_AI_timer)
+                            5 25 random + (S.L.ai_passenger_window_hatch_actualization_delay_stop)
+                        {endif}
+                    {endif}
+                    (L.L.ai_unscheduled_stop_initialized) 2 =
+                    {if}
+                        (L.L.ai_unscheduled_stop_timer) (L.S.Timegap) + (S.L.ai_unscheduled_stop_timer)
+                        (M.L.ai_can_depart_with_front_door_open_unscheduled_stop) l1 ! (L.L.ai_arrived_with_front_door_open) &&
+                        {if}
+                            1 (S.L.ai_unscheduled_stop_wait_op_pending)
+                            (L.L.door_AI_timer) (L.S.Timegap) + (S.L.door_AI_timer)
+                            (L.L.door_AI_timer) 0.3 > (L.L.doorTarget_1) &&
+                            {if}
+                                (M.L.trg_bus_doorfront1)
+                            {endif}
+                            (L.L.door_AI_timer) 0.6 > (L.L.doorTarget_0) &&
+                            {if}
+                                (M.L.trg_bus_doorfront0)
+                                0 (S.L.ai_unscheduled_stop_wait_op_pending) (S.L.ai_arrived_with_front_door_open)
+                            {endif}
                         {endif}
                     {endif}
                 {else}
-                    0 (S.L.ai_unscheduled_stop_initialized)
-                    (L.L.door_20h_sw)
+                    (L.L.ai_unscheduled_stop_wait_op_pending) !
                     {if}
-                        0 (S.L.door_20h_sw)
-                        (T.L.ev_haltebremse_sw_aus)
-                    {endif}
-                    (L.L.ai_stop_brake_sw_timer)
-                    {if}
-                        0 (S.L.ai_stop_brake_sw_timer)
+                        0 (S.L.ai_unscheduled_stop_initialized)
+                        (L.L.door_20h_sw)
+                        {if}
+                            0 (S.L.door_20h_sw)
+                            (T.L.ev_haltebremse_sw_aus)
+                        {endif}
                     {endif}
                 {endif}
             {endif}
@@ -1803,7 +2224,9 @@
 
 {macro:ai_env_perception_changed}
     (L.L.ai_env_perception) (S.L.ai_env_perception_prev)
-    (M.L.ai_env_perception) (L.L.ai_env_perception) s7 (L.L.ai_env_perception_prev) = ! s1
+    (L.L.ai_env_perception_daytime) (S.L.ai_env_perception_prev_daytime)
+    (L.L.ai_env_perception_rainy) (S.L.ai_env_perception_prev_rainy)
+    (M.L.ai_env_perception) (L.L.ai_env_perception) s7 (L.L.ai_env_perception_prev) = ! s1 (S.L.ai_env_perception_changed)
     {if}
         l7 20 < (S.L.ai_env_perception_cold)
         {if}
@@ -1827,7 +2250,51 @@
                 {endif}
             {endif}
         {endif}
-        l7 10 % s7 3 < (S.L.ai_env_perception_daytime) l7 2 = l7 4 = || (S.L.ai_env_perception_rainy)
+        l7 10 % s7 3 < (S.L.ai_env_perception_daytime)
+        l7 2 = l7 4 = || (S.L.ai_env_perception_rainy)
+        (L.L.ai_env_perception) s7 10 / trunc (L.L.ai_env_perception_prev) 10 / trunc <
+        {if}
+            1 (S.L.ai_env_colder_than_before)
+            0 (S.L.ai_env_warmer_than_before)
+        {else}
+            l7 10 / trunc (L.L.ai_env_perception_prev) 10 / trunc >
+            {if}
+                0 (S.L.ai_env_colder_than_before)
+                1 (S.L.ai_env_warmer_than_before)
+            {else}
+                0 (S.L.ai_env_colder_than_before) (S.L.ai_env_warmer_than_before)
+            {endif}
+        {endif}
+        (L.L.ai_env_perception_prev_daytime) (L.L.ai_env_perception_daytime) ! &&
+        {if}
+            1 (S.L.ai_env_darker_than_before)
+            0 (S.L.ai_env_brighter_than_before)
+        {else}
+            (L.L.ai_env_perception_prev_daytime) ! (L.L.ai_env_perception_daytime) &&
+            {if}
+                0 (S.L.ai_env_darker_than_before)
+                1 (S.L.ai_env_brighter_than_before)
+            {else}
+                0 (S.L.ai_env_darker_than_before) (S.L.ai_env_brighter_than_before)
+            {endif}
+        {endif}
+        (L.L.ai_env_perception_prev_rainy) (L.L.ai_env_perception_rainy) ! &&
+        {if}
+            1 (S.L.ai_env_drier_than_before)
+            0 (S.L.ai_env_wetter_than_before)
+        {else}
+            (L.L.ai_env_perception_prev_rainy) ! (L.L.ai_env_perception_rainy) &&
+            {if}
+                0 (S.L.ai_env_drier_than_before)
+                1 (S.L.ai_env_wetter_than_before)
+            {else}
+                0 (S.L.ai_env_drier_than_before) (S.L.ai_env_wetter_than_before)
+            {endif}
+        {endif}
+        (M.L.ai_env_warmer_brighter_drier_than_before)
+    {else}
+        0 (S.L.ai_env_warmer_than_before) (S.L.ai_env_brighter_than_before) (S.L.ai_env_drier_than_before) (S.L.ai_env_colder_than_before)
+            (S.L.ai_env_darker_than_before) (S.L.ai_env_wetter_than_before)
     {endif}
 {end}
 
@@ -1854,13 +2321,13 @@
         {endif}
     {endif}
     l2 10 * s2
-    (L.S.SunAlt) -90 max 90 min (L.L.ai_door_daytime_begin) >=
+    (L.L.ai_sun_alt) (L.L.ai_door_daytime_begin) >=
     {if}
         l2 1 + s2
     {else}
         l2 3 + s2
     {endif}
-    (L.L.PrecipType) 0 max 2 min (L.L.PrecipRate) 0.001 max 1 min (L.L.ai_door_precip_begin) >= &&
+    (L.L.ai_precip_rate) d 0.001 max (L.L.ai_door_precip_begin) >= &&
     {if}
         l2 1 + s2
     {endif}
@@ -1874,17 +2341,17 @@
     {endif}
     (L.L.ai_ovh_lights_on) (L.L.ai_env_perception_daytime) ! ||
     {if}
-        l2 10 + s2
+        l2 20 + s2
     {endif}
     l1 4 >
     {if}
-        l2 5 + s2
+        l2 10 + s2
     {endif}
     (L.L.ai_env_perception_ideal)
     {if}
         l2 10 + s2
     {endif}
-    (L.L.ai_at_terminus_stop)
+    (L.L.ai_at_terminus_stop) 3 random 1 = &&
     {if}
         0 (S.L.ai_arrived_with_front_door_open)
     {endif}
@@ -1893,29 +2360,35 @@
         && || (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_warm) || && (L.L.humans_count)
         (L.L.ai_departure_with_front_door_open_if_human_count_below) <= && (L.L.ai_env_perception_rainy) ! &&
         0 (M.V.GetHumanCountOnSeat) 0 max ! && 1 (M.V.GetHumanCountOnSeat) 0 max ! && (L.L.door_0) && 
-        (L.L.doorTarget_0) && (L.L.door_1) && (L.L.doorTarget_1) && s1
+        (L.L.doorTarget_0) && (L.L.door_1) && (L.L.doorTarget_1) && (S.L.ai_depart_with_front_door_open)
 {end}
 
-{macro:ai_can_initially_depart_with_front_door_open}
+{macro:ai_can_depart_with_front_door_open_unscheduled_stop}
+    0 (M.V.GetHumanCountOnSeat) 0 max ! 1 (M.V.GetHumanCountOnSeat) 0 max ! && 3 random || (L.L.ai_env_perception_rainy) ! &&
+    (L.L.ai_env_perception) 30 > && (L.L.ai_env_perception) 50 < && s1
+{end}
+
+{macro:ai_can_depart_with_front_door_open_initial}
     (M.V.GetTTBusstopIndex) 0 max s1 s2 (M.V.GetTTBusstopCount) 1 - 0 max >= l1 2 < ||
     {if}
         0 s2
     {endif}
-    (L.L.ai_ovh_lights_on)
+    (L.L.ai_ovh_lights_on) (L.L.ai_env_perception_daytime) ! ||
     {if}
-        l2 10 + s2
+        l2 20 + s2
     {endif}
     l1 4 >
     {if}
-        l2 5 + s2
+        l2 10 + s2
     {endif}
     (L.L.ai_env_perception_ideal)
     {if}
-        l2 3 + s2
+        l2 10 + s2
     {endif}
     l2 (L.L.ai_departure_with_front_door_open_chance) + random 0 = (L.L.ai_arrived_with_front_door_open) l1 4 <= l1 4 >
         3 random 0 = && || && || (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_warm) || &&
-        (L.L.ai_departure_with_front_door_open_if_human_count_below) && (L.L.ai_env_perception_rainy) ! && s1
+        (L.L.ai_departure_with_front_door_open_if_human_count_below) && (L.L.ai_env_perception_rainy) ! &&
+        (S.L.ai_arrived_with_front_door_open)
 {end}
 
 {macro:ai_is_at_terminus_stop}
@@ -1927,23 +2400,124 @@
 {end}
 
 {macro:ai_is_at_extended_stop}  
-    (L.L.ai_estimated_stop_duration) 150 >= (S.L.ai_at_extended_stop)
+    (L.L.ai_estimated_stop_duration) (L.L.ai_extended_stop_min_duration) >= (S.L.ai_at_extended_stop)
 {endif}
 
 {macro:ai_calc_time_to_dep}
     (M.V.GetTTBusstopIndex) s0 (M.V.GetTTBusstopDep) (S.L._r11)
-    l0 (M.V.GetTTBusstopArr) (M.V.GetTTDelay) + (L.L._r11) min (S.L._r10)
+    l0 (M.V.GetTTBusstopArr) (M.V.GetTTDelay) 0 max + (L.L._r11) min (S.L._r10)
     (L.L._r10) (L.L._r11) <=
     {if}
         (L.L._r11) (L.L._r10) - s0
     {else}
-        86400 (L.L._r10) - (L.L._r11) + s0
+        (C.L.secs_per_day) (L.L._r10) - (L.L._r11) + s0
     {endif}
     l0 (S.L.ai_estimated_stop_duration)
 {end}
 
+{macro:ai_is_delayed_upon_arrival}
+    (M.V.GetTTDelay) (C.L.secs_per_min) > (S.L.ai_delayed_arrival)
+{end}
+
 {macro:ai_has_front_door_entry_req}
     (L.L.PAX_Entry0_Req) (L.L.PAX_Entry1_Req) || (S.L.ai_front_door_entry_req)
+{end}
+
+{macro:ai_adjust_driver_window_initial}
+    (L.L.ai_env_perception_daytime) s2
+    (L.L.ai_env_perception_rainy) s3
+    (L.L.ai_env_perception_cold)
+    {if}
+        l2
+        {if}
+            l3
+            {if}
+                10 random 100 / s1
+            {else}
+                15 random 100 / s1
+            {endif}
+        {else}
+            0 s1
+        {endif}
+    {else}
+        (L.L.ai_env_perception_neutral_to_chilly)
+        {if}
+            l2
+            {if}
+                l3
+                {if}
+                    15 random 100 / s1
+                {else}
+                    100 random 100 / s1
+                {endif}
+            {else}
+                l3
+                {if}
+                    0 s1
+                {else}
+                    10 random 100 / s1
+                {endif}
+            {endif}
+        {else}
+            (L.L.ai_env_perception_ideal)
+            {if}
+                l2
+                {if}
+                    l3
+                    {if}
+                        0.1 15 random 100 / + s1
+                    {else}
+                        0.25 75 random 100 / + s1
+                    {endif}
+                {else}
+                    l3
+                    {if}
+                        10 random 100 / s1
+                    {else}
+                        0.1 50 random 100 / + s1
+                    {endif}
+                {endif}
+            {else}
+                (L.L.ai_env_perception_warm)
+                {if}
+                    l2
+                    {if}
+                        l3
+                        {if}
+                            0.15 20 random 100 / + s1
+                        {else}
+                            0.75 25 random 100 / + s1
+                        {endif}
+                    {else}
+                        l3
+                        {if}
+                            0.15 20 random 100 / + s1
+                        {else}
+                            0.5 50 random 100 / + s1
+                        {endif}
+                    {endif}
+                {else}
+                    l2
+                    {if}
+                        l3
+                        {if}
+                            15 random 100 / s1
+                        {else}
+                            25 random 100 / s1
+                        {endif}
+                    {else}
+                        l3
+                        {if}
+                            25 random 100 / s1
+                        {else}
+                            100 random 100 / s1
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+    l1 (S.L.ai_cp_fahrerfenster_pos_target) (S.L.cp_fahrerfenster_pos)
 {end}
 
 {macro:ai_adjust_driver_window}
@@ -1988,16 +2562,16 @@
                 {if}
                     l3
                     {if}
-                        15 random 100 / 0.1 max s1
+                        0.1 15 random 100 / + s1
                     {else}
-                        100 random 100 / 0.25 max s1
+                        0.25 75 random 100 / + s1
                     {endif}
                 {else}
                     l3
                     {if}
                         10 random 100 / s1
                     {else}
-                        50 random 100 / 0.1 max s1
+                        0.1 50 random 100 / + s1
                     {endif}
                 {endif}
             {else}
@@ -2007,16 +2581,16 @@
                     {if}
                         l3
                         {if}
-                            50 random 100 / 0.1 max s1
+                            0.15 20 random 100 / + s1
                         {else}
-                            100 random 100 / 0.75 max s1
+                            0.75 25 random 100 / + s1
                         {endif}
                     {else}
                         l3
                         {if}
-                            10 random 100 / 0.15 max s1
+                            0.15 20 random 100 / + s1
                         {else}
-                            100 random 100 / 0.5 max s1
+                            0.5 50 random 100 / + s1
                         {endif}
                     {endif}
                 {else}
@@ -2040,16 +2614,22 @@
             {endif}
         {endif}
     {endif}
-    l1 (S.L.cp_fahrerfenster_pos)
+    (L.L.ai_env_warmer_brighter_drier_than_before)
+    {if}
+        l1 (L.L.ai_cp_fahrerfenster_pos_target) max s1
+    {else}
+        l1 (L.L.ai_cp_fahrerfenster_pos_target) min s1
+    {endif}
+    l1 (S.L.ai_cp_fahrerfenster_pos_target_delayed)
 {end}
 
-{macro:ai_adjust_hatches_and_passenger_windows}
+{macro:ai_adjust_hatches_and_passenger_windows_initial}
     (L.L.ai_env_perception_daytime) s2
     (L.L.ai_env_perception_rainy) s3
     (L.L.ai_env_perception_cold)
     {if}
         0 (S.L.cp_klappfenster_1) (S.L.cp_klappfenster_2) (S.L.cp_klappfenster_3) (S.L.cp_klappfenster_4)
-        0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+        0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
     {else}
         (L.L.ai_env_perception_neutral_to_chilly)
         {if}
@@ -2058,7 +2638,7 @@
                 l3
                 {if}
                     0 (S.L.cp_klappfenster_1) (S.L.cp_klappfenster_2) (S.L.cp_klappfenster_3) (S.L.cp_klappfenster_4)
-                    0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                 {else}
                     5 random 0 =
                     {if}
@@ -2089,29 +2669,29 @@
                     {if}
                         100 random s1 0 >= l1 25 < &&
                         {if}
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                         {else}
                             l1 25 >= l1 50 < &&
                             {if}
-                                0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {else}
                                 l1 50 >= l1 65 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 65 >= l1 80 < &&
                                     {if}
-                                        3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                        3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 80 >= l1 90 < &&
                                         {if}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 90 >= l1 95 < &&
                                             {if}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
-                                                1 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                1 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {endif}
                                         {endif}
                                     {endif}
@@ -2119,12 +2699,12 @@
                             {endif}
                         {endif}
                     {else}
-                        0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                        0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                     {endif}
                 {endif}
             {else}
                 0 (S.L.cp_klappfenster_1) (S.L.cp_klappfenster_2) (S.L.cp_klappfenster_3) (S.L.cp_klappfenster_4)
-                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
             {endif}
         {else}
             (L.L.ai_env_perception_ideal)
@@ -2138,27 +2718,27 @@
                         {if}
                             100 random s1 0 >= l1 50 < &&
                             {if}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                             {else}
                                 l1 50 >= l1 75 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 75 >= l1 90 < &&
                                     {if}
-                                        3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                        3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 90 >= l1 95 < &&
                                         {if}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {endif}
                                     {endif}
                                 {endif}
                             {endif}
                         {else}
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {endif}
                     {else}
                         3 random 0 = !
@@ -2183,41 +2763,41 @@
                         {if}
                             100 random s1 0 >= l1 20 < &&
                             {if}
-                                0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                             {else}
                                 l1 20 >= l1 35 < &&
                                 {if}
-                                    1 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    1 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 35 >= l1 50 < &&
                                     {if}
-                                        1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3) 
+                                        1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial) 
                                     {else}
                                         l1 50 >= l1 60 < &&
                                         {if}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 60 >= l1 70 < &&
                                             {if}
-                                                0 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                0 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
                                                 l1 70 >= l1 80 < &&
                                                 {if}
-                                                    2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                    2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                                 {else}
                                                     l1 80 >= l1 85 < &&
                                                     {if}
-                                                        2 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                        2 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                     {else}
                                                         l1 85 >= l1 90 < &&
                                                         {if}
-                                                            3 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                         {else}
                                                             l1 90 >= l1 95 < &&
                                                             {if}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {else}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {endif}
                                                         {endif}
                                                     {endif}
@@ -2228,7 +2808,7 @@
                                 {endif}
                             {endif}
                         {else}
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {endif}
                     {endif}
                 {else}
@@ -2239,27 +2819,27 @@
                         {if}
                             100 random s1 0 >= l1 50 < &&
                             {if}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                             {else}
                                 l1 50 >= l1 75 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 75 >= l1 90 < &&
                                     {if}
-                                        3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                        3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 90 >= l1 95 < &&
                                         {if}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {endif}
                                     {endif}
                                 {endif}
                             {endif}
                         {else}
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {endif}                        
                     {else}
                         2 random 0 =
@@ -2284,41 +2864,41 @@
                         {if}
                             100 random s1 0 >= l1 20 < &&
                             {if}
-                                0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                             {else}
                                 l1 20 >= l1 35 < &&
                                 {if}
-                                    1 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    1 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 35 >= l1 50 < &&
                                     {if}
-                                        1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3) 
+                                        1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial) 
                                     {else}
                                         l1 50 >= l1 60 < &&
                                         {if}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 60 >= l1 70 < &&
                                             {if}
-                                                0 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                0 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
                                                 l1 70 >= l1 80 < &&
                                                 {if}
-                                                    2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                    2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                                 {else}
                                                     l1 80 >= l1 85 < &&
                                                     {if}
-                                                        2 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                        2 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                     {else}
                                                         l1 85 >= l1 90 < &&
                                                         {if}
-                                                            3 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                         {else}
                                                             l1 90 >= l1 95 < &&
                                                             {if}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {else}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {endif}
                                                         {endif}
                                                     {endif}
@@ -2329,7 +2909,7 @@
                                 {endif}
                             {endif}
                         {else}
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {endif}
                     {endif}
                 {endif}
@@ -2345,27 +2925,27 @@
                             {if}
                                 100 random s1 0 >= l1 50 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 50 >= l1 75 < &&
                                     {if}
-                                        0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 75 >= l1 90 < &&
                                         {if}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 90 >= l1 95 < &&
                                             {if}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {endif}
                                         {endif}
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {else}
                             1 random 0 =
@@ -2378,22 +2958,22 @@
                             {if}
                                 100 random s1 0 >= l1 50 < &&
                                 {if}
-                                    1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                    1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 50 >= l1 75 < &&
                                     {if}
-                                        2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                        2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 75 >= l1 90 < &&
                                         {if}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {endif}
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {endif}
                     {else}
@@ -2404,27 +2984,27 @@
                             {if}
                                 100 random s1 0 >= l1 50 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 50 >= l1 75 < &&
                                     {if}
-                                        0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 75 >= l1 90 < &&
                                         {if}
-                                            3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 3 =
                                             {if}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {endif}
                                         {endif}
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {else}
                             1 random 0 =
@@ -2437,22 +3017,22 @@
                             {if}
                                 100 random s1 0 >= l1 50 < &&
                                 {if}
-                                    1 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                    1 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 50 >= l1 75 < &&
                                     {if}
-                                        2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                        2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 75 >= l1 90 < &&
                                         {if}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
-                                            1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                            1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {endif}
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {endif}
                     {endif}
@@ -2462,7 +3042,7 @@
                         l3
                         {if}
                             0 (S.L.cp_klappfenster_1) (S.L.cp_klappfenster_2) (S.L.cp_klappfenster_3) (S.L.cp_klappfenster_4)
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {else}
                             5 random 0 =
                             {if}
@@ -2474,37 +3054,37 @@
                             {if}
                                 100 random s1 0 >= l1 25 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 25 >= l1 40 < &&
                                     {if}
-                                        0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 40 >= l1 55 < &&
                                         {if}
-                                            0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 55 >= l1 65 < &&
                                             {if}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
                                                 l1 65 >= l1 75 < &&
                                                 {if}
-                                                    0 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                                 {else}
                                                     l1 75 >= l1 85 < &&
                                                     {if}
-                                                        0 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                     {else}
                                                         l1 85 >= l1 90 < &&
                                                         {if}
-                                                            3 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                         {else}
                                                             l1 90 >= l1 95 < &&
                                                             {if}
-                                                                1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                                1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {else}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {endif}
                                                         {endif}
                                                     {endif}
@@ -2514,14 +3094,14 @@
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {endif}
                     {else}
                         l3
                         {if}
                             0 (S.L.cp_klappfenster_1) (S.L.cp_klappfenster_2) (S.L.cp_klappfenster_3) (S.L.cp_klappfenster_4)
-                            0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                            0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                         {else}
                             5 random 0 =
                             {if}
@@ -2533,37 +3113,37 @@
                             {if}
                                 100 random s1 0 >= l1 25 < &&
                                 {if}
-                                    0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                 {else}
                                     l1 25 >= l1 40 < &&
                                     {if}
-                                        0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                     {else}
                                         l1 40 >= l1 55 < &&
                                         {if}
-                                            0 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                            0 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                         {else}
                                             l1 55 >= l1 65 < &&
                                             {if}
-                                                3 s1 (M.L.trg_cp_dachluke_1) 3 s1 (M.L.trg_cp_dachluke_2) 3 s1 (M.L.trg_cp_dachluke_3)
+                                                3 s1 (M.L.trg_cp_dachluke_1_initial) 3 s1 (M.L.trg_cp_dachluke_2_initial) 3 s1 (M.L.trg_cp_dachluke_3_initial)
                                             {else}
                                                 l1 65 >= l1 75 < &&
                                                 {if}
-                                                    0 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                                    0 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                                                 {else}
                                                     l1 75 >= l1 85 < &&
                                                     {if}
-                                                        0 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                        0 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                     {else}
                                                         l1 85 >= l1 90 < &&
                                                         {if}
-                                                            3 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                            3 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                         {else}
                                                             l1 90 >= l1 95 < &&
                                                             {if}
-                                                                1 s1 (M.L.trg_cp_dachluke_1) 1 s1 (M.L.trg_cp_dachluke_2) 1 s1 (M.L.trg_cp_dachluke_3)
+                                                                1 s1 (M.L.trg_cp_dachluke_1_initial) 1 s1 (M.L.trg_cp_dachluke_2_initial) 1 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {else}
-                                                                2 s1 (M.L.trg_cp_dachluke_1) 2 s1 (M.L.trg_cp_dachluke_2) 2 s1 (M.L.trg_cp_dachluke_3)
+                                                                2 s1 (M.L.trg_cp_dachluke_1_initial) 2 s1 (M.L.trg_cp_dachluke_2_initial) 2 s1 (M.L.trg_cp_dachluke_3_initial)
                                                             {endif}
                                                         {endif}
                                                     {endif}
@@ -2573,7 +3153,7 @@
                                     {endif}
                                 {endif}
                             {else}
-                                0 s1 (M.L.trg_cp_dachluke_1) 0 s1 (M.L.trg_cp_dachluke_2) 0 s1 (M.L.trg_cp_dachluke_3)
+                                0 s1 (M.L.trg_cp_dachluke_1_initial) 0 s1 (M.L.trg_cp_dachluke_2_initial) 0 s1 (M.L.trg_cp_dachluke_3_initial)
                             {endif}
                         {endif}
                     {endif}
@@ -2583,38 +3163,1079 @@
     {endif}
 {end}
 
-{macro:ai_adjust_sun_blind}
-    (L.L.ai_use_sun_blind)
+{macro:ai_adjust_hatches_and_passenger_windows}
+    (L.L.ai_env_perception_daytime) s2
+    (L.L.ai_env_perception_rainy) s3
+    (L.L.ai_env_perception_cold)
     {if}
-        (L.S.SunAlt) s7 (L.L.ai_sun_blind_daytime_begin) < (L.L.PrecipType) 0 max 2 min (L.L.PrecipRate) 0 max 1 min 0.3 > && ||
-            (L.L.Envir_Brightness) 0.65 < ||
+        0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+        0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+        0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+        0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+        0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+        0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+    {else}
+        (L.L.ai_env_perception_neutral_to_chilly)
         {if}
-            (L.L.ai_sun_blind_retraction_timer) (L.S.Timegap) + (S.L.ai_sun_blind_retraction_timer) (L.L.ai_sun_blind_env_tolerance) >
+            l2
             {if}
-                0 (S.L.ai_sun_blind_retraction_timer) (S.L.cp_rollo_pos)
-            {endif}
-            0 (S.L.ai_sun_blind_drag_low_timer) (S.L.ai_sun_blind_drag_high_timer)
-        {else}
-            l7 (L.L.ai_sun_blind_midday_begin) <
-            {if}
-                (L.L.ai_sun_blind_drag_high_timer) (L.S.Timegap) + (S.L.ai_sun_blind_drag_high_timer) (L.L.ai_sun_blind_env_tolerance) >
+                l3
                 {if}
-                    0 (S.L.ai_sun_blind_drag_high_timer)
-                    (L.L.ai_sun_blind_pos_high) (S.L.cp_rollo_pos)
+                    0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                    0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                    0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                    0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                    0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                {else}
+                    5 random 0 =
+                    {if}
+                        100 random s1 0 >= l1 50 < &&
+                        {if}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                        {else}
+                            l1 50 >= l1 80 < &&  
+                            {if}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                l1 80 >= l1 90 <
+                                {if}
+                                    0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {else}
+                                    1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {endif}
+                            {endif}
+                        {endif}
+                    {else}
+                        0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                        0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                        0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                        0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                    {endif}
+                    5 random 0 =
+                    {if}
+                        100 random s1 0 >= l1 25 < &&
+                        {if}
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {else}
+                            l1 25 >= l1 50 < &&
+                            {if}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {else}
+                                l1 50 >= l1 65 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 65 >= l1 80 < &&
+                                    {if}
+                                        3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 80 >= l1 90 < &&
+                                        {if}
+                                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 90 >= l1 95 < &&
+                                            {if}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {endif}
+                    {else}
+                        0 s1 (S.L.ai_cp_dachluke_1_delayed) 0 s1 (S.L.ai_cp_dachluke_2_delayed) 0 s1 (S.L.ai_cp_dachluke_3_delayed)
+                    {endif}
                 {endif}
-                0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_low_timer)
             {else}
-                (L.L.ai_sun_blind_drag_low_timer) (L.S.Timegap) + (S.L.ai_sun_blind_drag_low_timer) (L.L.ai_sun_blind_env_tolerance) >
+                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+            {endif}
+        {else}
+            (L.L.ai_env_perception_ideal)
+            {if}
+                l2
                 {if}
-                    0 (S.L.ai_sun_blind_drag_low_timer)
-                    (L.L.ai_sun_blind_pos_low) (S.L.cp_rollo_pos)
+                    l3
+                    {if}
+                        0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                        0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                        0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                        0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                        3 random 0 =
+                        {if}
+                            100 random s1 0 >= l1 50 < &&
+                            {if}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {else}
+                                l1 50 >= l1 75 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 75 >= l1 90 < &&
+                                    {if}
+                                        3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 90 >= l1 95 < &&
+                                        {if}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {endif}
+                    {else}
+                        3 random 0 = !
+                        {if}
+                            100 random s1 0 >= l1 35 < &&
+                            {if}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                l1 35 >= l1 70 < &&
+                                {if}
+                                    1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {else}
+                                    1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                        {endif}
+                        3 random 0 = !
+                        {if}
+                            100 random s1 0 >= l1 20 < &&
+                            {if}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {else}
+                                l1 20 >= l1 35 < &&
+                                {if}
+                                    1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 35 >= l1 50 < &&
+                                    {if}
+                                        1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 50 >= l1 60 < &&
+                                        {if}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 60 >= l1 70 < &&
+                                            {if}
+                                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                l1 70 >= l1 80 < &&
+                                                {if}
+                                                    2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                    2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                    0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                {else}
+                                                    l1 80 >= l1 85 < &&
+                                                    {if}
+                                                        2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                        0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                        2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                    {else}
+                                                        l1 85 >= l1 90 < &&
+                                                        {if}
+                                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                        {else}
+                                                            l1 90 >= l1 95 < &&
+                                                            {if}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {else}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {endif}
+                                                        {endif}
+                                                    {endif}
+                                                {endif}
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {endif}
+                    {endif}
+                {else}
+                    l3
+                    {if}
+                        0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                        0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                        0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                        0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                        3 random 0 =
+                        {if}
+                            100 random s1 0 >= l1 50 < &&
+                            {if}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {else}
+                                l1 50 >= l1 75 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 75 >= l1 90 < &&
+                                    {if}
+                                        3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 90 >= l1 95 < &&
+                                        {if}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {endif}                        
+                    {else}
+                        2 random 0 =
+                        {if}
+                            100 random s1 0 >= l1 50 < &&
+                            {if}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                l1 50 >= l1 85 < &&
+                                {if}
+                                    1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {else}
+                                    1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                    1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                    1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                    1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                        {endif}
+                        2 random 0 =
+                        {if}
+                            100 random s1 0 >= l1 20 < &&
+                            {if}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {else}
+                                l1 20 >= l1 35 < &&
+                                {if}
+                                    1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 35 >= l1 50 < &&
+                                    {if}
+                                        1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 50 >= l1 60 < &&
+                                        {if}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 60 >= l1 70 < &&
+                                            {if}
+                                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                l1 70 >= l1 80 < &&
+                                                {if}
+                                                    2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                    2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                    0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                {else}
+                                                    l1 80 >= l1 85 < &&
+                                                    {if}
+                                                        2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                        0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                        2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                    {else}
+                                                        l1 85 >= l1 90 < &&
+                                                        {if}
+                                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                        {else}
+                                                            l1 90 >= l1 95 < &&
+                                                            {if}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {else}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {endif}
+                                                        {endif}
+                                                    {endif}
+                                                {endif}
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {endif}
+                    {endif}
                 {endif}
-                0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_high_timer)
+            {else}
+                (L.L.ai_env_perception_warm)
+                {if}
+                    l2
+                    {if}
+                        l3
+                        {if}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            3 random 0 = !
+                            {if}
+                                100 random s1 0 >= l1 50 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 50 >= l1 75 < &&
+                                    {if}
+                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 75 >= l1 90 < &&
+                                        {if}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 90 >= l1 95 < &&
+                                            {if}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {else}
+                            1 random 0 =
+                            {if}
+                                1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {endif}
+                            1 random 0 =
+                            {if}
+                                100 random s1 0 >= l1 50 < &&
+                                {if}
+                                    1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 50 >= l1 75 < &&
+                                    {if}
+                                        2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 75 >= l1 90 < &&
+                                        {if}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {endif}
+                    {else}
+                        l3
+                        {if}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            3 random 0 = !
+                            {if}
+                                100 random s1 0 >= l1 50 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 50 >= l1 75 < &&
+                                    {if}
+                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 75 >= l1 90 < &&
+                                        {if}
+                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 3 =
+                                            {if}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {else}
+                            1 random 0 =
+                            {if}
+                                1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {endif}
+                            1 random 0 =
+                            {if}
+                                100 random s1 0 >= l1 50 < &&
+                                {if}
+                                    1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 50 >= l1 75 < &&
+                                    {if}
+                                        2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 75 >= l1 90 < &&
+                                        {if}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {endif}
+                    {endif}
+                {else}
+                    l2
+                    {if}
+                        l3
+                        {if}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {else}
+                            5 random 0 =
+                            {if}
+                                1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {endif}
+                            5 random 0 =
+                            {if}
+                                100 random s1 0 >= l1 25 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 25 >= l1 40 < &&
+                                    {if}
+                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 40 >= l1 55 < &&
+                                        {if}
+                                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 55 >= l1 65 < &&
+                                            {if}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                l1 65 >= l1 75 < &&
+                                                {if}
+                                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                    1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                    0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                {else}
+                                                    l1 75 >= l1 85 < &&
+                                                    {if}
+                                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                        1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                        1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                    {else}
+                                                        l1 85 >= l1 90 < &&
+                                                        {if}
+                                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                        {else}
+                                                            l1 90 >= l1 95 < &&
+                                                            {if}
+                                                                1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {else}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {endif}
+                                                        {endif}
+                                                    {endif}
+                                                {endif}
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {endif}
+                    {else}
+                        l3
+                        {if}
+                            0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                            0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                            0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                            0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                            0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                            0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                        {else}
+                            5 random 0 =
+                            {if}
+                                1 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                1 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                1 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                1 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {else}
+                                0 s1 (L.L.cp_klappfenster_1) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_1_delayed)
+                                0 s1 (L.L.cp_klappfenster_2) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_2_delayed)
+                                0 s1 (L.L.cp_klappfenster_3) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_3_delayed)
+                                0 s1 (L.L.cp_klappfenster_4) s7 (M.L.sanitize_passenger_window_target_pos) l1 (S.L.ai_cp_klappfenster_4_delayed)
+                            {endif}
+                            3 random 0 =
+                            {if}
+                                100 random s1 0 >= l1 25 < &&
+                                {if}
+                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                    0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                    3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                {else}
+                                    l1 25 >= l1 40 < &&
+                                    {if}
+                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                        3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                        0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                    {else}
+                                        l1 40 >= l1 55 < &&
+                                        {if}
+                                            0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                            3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                            3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                        {else}
+                                            l1 55 >= l1 65 < &&
+                                            {if}
+                                                3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                3 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                3 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                            {else}
+                                                l1 65 >= l1 75 < &&
+                                                {if}
+                                                    0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                    1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                    0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                {else}
+                                                    l1 75 >= l1 85 < &&
+                                                    {if}
+                                                        0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                        1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                        1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                    {else}
+                                                        l1 85 >= l1 90 < &&
+                                                        {if}
+                                                            3 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                            1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                            1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                        {else}
+                                                            l1 90 >= l1 95 < &&
+                                                            {if}
+                                                                1 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                1 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                1 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {else}
+                                                                2 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                                                2 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                                                2 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                                                            {endif}
+                                                        {endif}
+                                                    {endif}
+                                                {endif}
+                                            {endif}
+                                        {endif}
+                                    {endif}
+                                {endif}
+                            {else}
+                                0 s1 (L.L.cp_dachluke_1) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_1_delayed)
+                                0 s1 (L.L.cp_dachluke_2) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_2_delayed)
+                                0 s1 (L.L.cp_dachluke_3) s7 (M.L.sanitize_hatch_target_pos) l1 (S.L.ai_cp_dachluke_3_delayed)
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
             {endif}
         {endif}
     {endif}
 {end}
 
 {macro:ai_adjust_sun_blind_initial}
-    (L.L.ai_sun_blind_env_tolerance) (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_high_timer) (S.L.ai_sun_blind_drag_low_timer)
+    (L.L.ai_use_sun_blind)
+    {if}
+        (L.L.ai_sun_alt) s7 (L.L.ai_sun_blind_daytime_begin) < (L.L.ai_env_brightness) (L.L.ai_sun_alt) (F.L.env_brightness_max_f_solar_elevation_angle)
+            (L.L.ai_sun_blind_min_env_brightness_factor) * < ||
+        {if}
+            0 (S.L.ai_cp_rollo_pos_target) (S.L.cp_rollo_pos)
+        {else}
+            l7 (L.L.ai_sun_blind_midday_begin) <
+            {if}
+                (L.L.ai_sun_blind_pos_high) (S.L.ai_cp_rollo_pos_target) (S.L.cp_rollo_pos)
+            {else}
+                (L.L.ai_sun_blind_pos_low) (S.L.ai_cp_rollo_pos_target) (S.L.cp_rollo_pos)
+            {endif}
+        {endif}
+    {endif}
+{end}
+
+{macro:ai_adjust_sun_blind}
+    (L.L.ai_use_sun_blind)
+    {if}
+        (L.L.ai_sun_alt) s7 (L.L.ai_sun_blind_daytime_begin) < (L.L.ai_env_brightness) (L.L.ai_sun_alt) (F.L.env_brightness_max_f_solar_elevation_angle)
+            (L.L.ai_sun_blind_min_env_brightness_factor) * < ||
+        {if}
+            (L.L.ai_sun_blind_retraction_timer) (L.L.ai_timegap) + (S.L.ai_sun_blind_retraction_timer) (L.L.ai_sun_blind_env_tolerance) >
+            {if}
+                0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_cp_rollo_pos_target)
+            {endif}
+            0 (S.L.ai_sun_blind_drag_low_timer) (S.L.ai_sun_blind_drag_high_timer)
+        {else}
+            l7 (L.L.ai_sun_blind_midday_begin) <
+            {if}
+                (L.L.ai_sun_blind_drag_high_timer) (L.L.ai_timegap) + (S.L.ai_sun_blind_drag_high_timer) (L.L.ai_sun_blind_env_tolerance) >
+                {if}
+                    0 (S.L.ai_sun_blind_drag_high_timer)
+                    (L.L.ai_sun_blind_pos_high) (S.L.ai_cp_rollo_pos_target)
+                {endif}
+                0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_low_timer)
+            {else}
+                (L.L.ai_sun_blind_drag_low_timer) (L.L.ai_timegap) + (S.L.ai_sun_blind_drag_low_timer) (L.L.ai_sun_blind_env_tolerance) >
+                {if}
+                    0 (S.L.ai_sun_blind_drag_low_timer)
+                    (L.L.ai_sun_blind_pos_low) (S.L.ai_cp_rollo_pos_target)
+                {endif}
+                0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_high_timer)
+            {endif}
+        {endif}
+    {else}
+        0 (S.L.ai_sun_blind_retraction_timer) (S.L.ai_sun_blind_drag_high_timer) (S.L.ai_sun_blind_drag_low_timer)
+    {endif}
+{end}
+
+{macro:ai_env_warmer_brighter_drier_than_before}
+    (L.L.ai_env_warmer_than_before) (L.L.ai_env_perception) 50 < && (L.L.ai_env_colder_than_before) (L.L.ai_env_perception_prev) 50 >= &&
+        (L.L.ai_env_perception) 20 >= && || (L.L.ai_env_brighter_than_before) (L.L.ai_env_perception) 50 < &&
+        (L.L.ai_env_darker_than_before) (L.L.ai_env_perception) 50 >= && || || (L.L.ai_env_wetter_than_before) ! &&
+        (L.L.ai_env_drier_than_before) || (S.L.ai_env_warmer_brighter_drier_than_before)
+{end}
+
+{macro:sanitize_hatch_target_pos}
+    (L.L.ai_env_warmer_brighter_drier_than_before) l7 1 = l1 2 = ! && l7 2 = || l7 3 = l1 1 = ! && l1 2 = ! && || && (L.L.ai_env_warmer_brighter_drier_than_before) ! l7 ! l7 1 = l1 && l1 3 = ! && || l7 2 = l1 && l1 1 = ! && l1 3 = ! && || l7 3 = l1 && || && ||  
+    {if}
+        l7 s1
+    {endif}
+{end}
+
+{macro:sanitize_passenger_window_target_pos}
+    (L.L.ai_env_warmer_brighter_drier_than_before)
+    {if}
+        l7 l1 max s1
+    {else}
+        l7 l1 min s1
+    {endif}
+{end}
+
+{macro:ai_calc_front_door_static_opening_preconditions}
+    0 (S.L.ai_open_door_0_preconditions)
+    (L.L.ai_at_extended_stop)
+    {if}
+        (L.L.ai_env_perception_cold) !
+        {if}
+            (L.L.ai_env_perception_neutral_to_chilly)
+            {if}
+                (L.L.ai_open_front_door_ext_stop_neutral_to_chilly) (S.L.ai_open_door_0_preconditions)
+                {if}
+                    (L.L.ai_env_perception_rainy)
+                    {if}
+                        (L.L.ai_open_front_door_ext_stop_neutral_to_chilly_rainy) (L.L.ai_open_door_0_preconditions) &&
+                            (S.L.ai_open_door_0_preconditions)
+                    {endif}
+                    (L.L.ai_env_perception_daytime) !
+                    {if}
+                        (L.L.ai_open_front_door_ext_stop_neutral_to_chilly_night) (L.L.ai_open_door_0_preconditions) &&
+                            (S.L.ai_open_door_0_preconditions)
+                    {endif}
+                {endif}
+            {else}
+                (L.L.ai_env_perception_ideal)
+                {if}
+                    (L.L.ai_open_front_door_ext_stop_ideal) (S.L.ai_open_door_0_preconditions)
+                    {if}
+                        (L.L.ai_env_perception_rainy)
+                        {if}
+                            (L.L.ai_open_front_door_ext_stop_ideal_rainy) (L.L.ai_open_door_0_preconditions) &&
+                                (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                        (L.L.ai_env_perception_daytime) !
+                        {if}
+                            (L.L.ai_open_front_door_ext_stop_ideal_night) (L.L.ai_open_door_0_preconditions) &&
+                                (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                    {endif}
+                {else}
+                    (L.L.ai_env_perception_hot) (L.L.ai_ext_stop_turn_engine_off) * (L.L.ai_env_perception_warm) ||
+                        (S.L.ai_open_door_0_preconditions)
+                    (L.L.ai_env_perception_warm) (L.L.ai_env_perception_rainy) &&
+                    {if}
+                        (L.L.ai_open_front_door_ext_stop_warm_rainy) (S.L.ai_open_door_0_preconditions)
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+    {else}
+        (L.L.ai_at_terminus_stop)
+        {if}
+            (L.L.ai_env_perception_cold) !
+            {if}
+                (L.L.ai_env_perception_neutral_to_chilly) (L.L.ai_estimated_stop_duration)
+                    (L.L.ai_terminus_stop_min_duration_for_door_opening_neutral_to_chilly) > &&
+                {if}
+                    (L.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly) (S.L.ai_open_door_0_preconditions)
+                    {if}
+                        (L.L.ai_env_perception_rainy)
+                        {if}
+                            (L.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_rainy) (L.L.ai_open_door_0_preconditions) &&
+                                (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                        (L.L.ai_env_perception_daytime) !
+                        {if}
+                            (L.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_night) (L.L.ai_open_door_0_preconditions) &&
+                                (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                    {endif}
+                {else}
+                    (L.L.ai_env_perception_ideal) (L.L.ai_estimated_stop_duration)
+                        (L.L.ai_terminus_stop_min_duration_for_door_opening_ideal) > &&
+                    {if}
+                        (L.L.ai_open_front_door_prolonged_terminus_stop_ideal) (S.L.ai_open_door_0_preconditions)
+                        {if}
+                            (L.L.ai_env_perception_rainy)
+                            {if}
+                                (L.L.ai_open_front_door_prolonged_terminus_stop_ideal_rainy) (L.L.ai_open_door_0_preconditions) &&
+                                (S.L.ai_open_door_0_preconditions)
+                            {endif}
+                            (L.L.ai_env_perception_daytime) !
+                            {if}
+                                (L.L.ai_open_front_door_prolonged_terminus_stop_ideal_night) (L.L.ai_open_door_0_preconditions) &&
+                                    (S.L.ai_open_door_0_preconditions)
+                            {endif}
+                        {endif}
+                    {else}
+                        (L.L.ai_env_perception_warm)
+                        {if}
+                            (L.L.ai_estimated_stop_duration) (L.L.ai_terminus_stop_min_duration_for_door_opening_warm) >
+                            {if}
+                                1 (S.L.ai_open_door_0_preconditions)
+                                (L.L.ai_env_perception_rainy)
+                                {if}
+                                    (L.L.ai_open_front_door_prolonged_terminus_stop_warm_rainy) (S.L.ai_open_door_0_preconditions)
+                                {endif}
+                            {else}
+                                (L.L.ai_open_front_door_normal_terminus_stop_warm_dry) (S.L.ai_open_door_0_preconditions)
+                                {if}
+                                    (L.L.ai_env_perception_daytime) !
+                                    {if}
+                                        (L.L.ai_open_front_door_normal_terminus_stop_warm_dry_night) (L.L.ai_open_door_0_preconditions) &&
+                                            (S.L.ai_open_door_0_preconditions)
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {else}
+                            (L.L.ai_env_perception_hot) (L.L.ai_estimated_stop_duration)
+                                (L.L.ai_terminus_stop_min_duration_for_door_opening_hot) > && (L.L.ai_env_perception_rainy) ! &&
+                            {if}
+                                (L.L.ai_open_front_door_prolonged_terminus_stop_hot_dry) (S.L.ai_open_door_0_preconditions)
+                                {if}
+                                    (L.L.ai_env_perception_daytime)
+                                    {if}
+                                        (L.L.ai_open_front_door_prolonged_terminus_stop_hot_dry_day) (L.L.ai_open_door_0_preconditions) &&
+                                            (S.L.ai_open_door_0_preconditions)
+                                    {endif}
+                                {endif}
+                            {endif}
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {else}
+            (L.L.ai_at_last_pre_terminus_stop) (L.L.ai_delayed_arrival) ! &&
+            {if}
+                (M.L.ai_can_depart_with_front_door_open_last_pre_terminus_stop_estimate) l1
+                {if}
+                    (L.L.ai_env_perception_ideal)
+                    {if}
+                        (L.L.ai_open_front_door_last_pre_terminus_stop_ideal) (S.L.ai_open_door_0_preconditions)
+                    {else}
+                        (L.L.ai_env_perception_warm)
+                        {if}
+                            (L.L.ai_open_front_door_last_pre_terminus_stop_warm) (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                    {endif}
+                {endif}
+            {else}
+                (L.L.ai_delayed_arrival) ! (L.L.ai_env_perception_rainy) ! &&
+                {if}
+                    (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_daytime) &&
+                    {if}
+                        (L.L.ai_open_front_door_normal_stop_ideal_dry_day) (S.L.ai_open_door_0_preconditions)
+                    {else}
+                        (L.L.ai_env_perception_warm)
+                        {if}
+                            (L.L.ai_open_front_door_normal_stop_warm_dry) (S.L.ai_open_door_0_preconditions)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+    (L.L.ai_env_perception_neutral_to_chilly) (L.L.ai_use_door_1_neutral_to_chilly) && (L.L.ai_env_perception_ideal)
+        (L.L.ai_use_door_1_ideal) && || (L.L.ai_env_perception_warm) || (L.L.ai_env_perception_hot)
+        (L.L.ai_use_door_1_hot) (L.L.ai_at_extended_stop) || && || (S.L.ai_open_door_1_preconditions)
+{end}
+
+{macro:ai_calc_back_door_static_opening_preconditions}
+    0 (S.L.ai_override_back_doors_preconditions)
+    (L.L.ai_open_door_0_preconditions) (L.L.ai_open_door_1_preconditions) && (L.L.ai_env_perception_rainy) ! &&
+        (L.L.ai_at_extended_stop) &&
+    {if}
+        (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_daytime) &&
+        {if}
+            (L.L.ai_override_back_doors_ext_stop_ideal_dry_day) (S.L.ai_override_back_doors_preconditions)
+        {else}
+            (L.L.ai_env_perception_warm)
+            {if}
+                (L.L.ai_override_back_doors_ext_stop_warm_dry) (S.L.ai_override_back_doors_preconditions)
+            {else}
+                (L.L.ai_env_perception_hot) (L.L.ai_ext_stop_turn_engine_off) &&
+                {if}
+                    (L.L.ai_override_back_doors_ext_stop_hot_dry) (S.L.ai_override_back_doors_preconditions)
+                {endif}
+            {endif}
+        {endif}
+    {endif}
+{end}
+
+{macro:ai_can_depart_with_front_door_open_last_pre_terminus_stop_estimate}
+    (L.L.ai_arrived_with_front_door_open)
+    {if}
+        1 s1
+    {else}
+        0 s1 s2
+        (L.L.ai_ovh_lights_on) (L.L.ai_env_perception_daytime) ! ||
+        {if}
+            l2 20 + s2
+        {endif}
+        l1 4 >
+        {if}
+            l2 10 + s2
+        {endif}
+        (L.L.ai_env_perception_ideal)
+        {if}
+            l2 10 + s2
+        {endif}
+        l2 (L.L.ai_departure_with_front_door_open_chance) + random 0 = (L.L.ai_env_perception_ideal) (L.L.ai_env_perception_warm) || &&
+            (L.L.humans_count) (L.L.ai_departure_with_front_door_open_if_human_count_below) <= && (L.L.ai_env_perception_rainy) ! &&
+            0 (M.V.GetHumanCountOnSeat) 0 max ! && 1 (M.V.GetHumanCountOnSeat) 0 max ! && s1
+    {endif}
 {end}

@@ -57,10 +57,69 @@
 	50 200 random + (S.L.engine_tank_content)
 	(L.S.Weather_Temperature) (S.L.engine_temperature) (S.L.engine_temperature_envir)
 	(C.L.engine_RPM_ign_cold) (S.L.engine_RPM_ign)
+    1 (S.L.engine_injection_on) (S.L.engine_on)
+    400 (S.L.engine_n)
+    5 25000 random 1000 / + (S.L.ai_ext_stop_engine_off_delay)
+    5 25000 random 1000 / + (S.L.ai_ext_stop_engine_on_delay)
+    70000 random 10000 / (S.L.ai_ext_stop_engine_on_delay_alt)
+    -1 (S.L.ai_ext_stop_engine_on_time_alt)
 {end}
 
 
 {macro:engine_frame}
+
+    (L.L.AI)
+    {if}
+        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_turn_engine_off) &&
+            (L.L.ai_stop_timer) (L.L.ai_ext_stop_engine_off_delay) (L.L.ai_estimated_stop_duration) 7 / min (S.L.ai_ext_stop_engine_off_actual_delay) > &&
+            (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_engine_on_delay) - (L.L.ai_estimated_stop_duration) d 7 / - max
+            (S.L.ai_ext_stop_engine_on_actual_delay) < && s0 (L.L.engine_on) &&
+        {if}
+            1 (S.L.cp_taster_motorabstellung)
+            0 (S.L.engine_injection_on)
+            (T.L.ev_engine_shutdown_actuator_on)
+        {else}
+            l0 ! (L.L.engine_on) ! &&
+            {if}
+                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_engine_on_time_alt) -1 = &&
+                {if}
+                    (L.S.Time) (L.L.ai_ext_stop_engine_on_delay_alt) + (S.L.ai_ext_stop_engine_on_time_alt) (C.L.secs_per_day) >=
+                    {if}
+                        (C.L.secs_per_day) (L.S.Time) - (L.L.ai_ext_stop_engine_on_delay_alt) + (S.L.ai_ext_stop_engine_on_time_alt)
+                    {endif}
+                {else}
+                    (L.L.ai_ext_stop_engine_on_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_engine_on_time_alt) > ||
+                    {if}
+                        1 (S.L.cp_taster_anlasser) (S.L.engine_starter) (S.L.engine_injection_on)
+                        (T.L.ev_engine_starter)
+                        (L.L.ai_ext_stop_engine_on_time_alt) -1 = !
+                        {if}
+                            -1 (S.L.ai_ext_stop_engine_on_time_alt)
+                        {endif}
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        (L.L.cp_taster_motorabstellung) (L.L.engine_n) 50 < &&
+        {if}
+            0 (S.L.cp_taster_motorabstellung)
+            (T.L.ev_engine_shutdown_actuator_off)
+        {endif}
+        (L.L.cp_taster_anlasser) (L.L.engine_n) 400 > &&
+        {if}
+            0 (S.L.cp_taster_anlasser) (S.L.engine_starter)
+        {endif}
+    {else}
+        0 (S.L.cp_taster_anlasser) (S.L.engine_starter) (S.L.cp_taster_motorabstellung)
+        -1 (S.L.ai_ext_stop_engine_on_time_alt)
+        (L.L.engine_on)
+        {if}
+            1 (S.L.engine_injection_on)
+            400 (S.L.engine_n)
+        {else}
+            0 (S.L.engine_injection_on)
+        {endif}
+    {endif}
 
 'Wenn Tank leer oder Motor kaputt, dann dies feststellen und im nächsten Schritt berücksichtigen:
 
