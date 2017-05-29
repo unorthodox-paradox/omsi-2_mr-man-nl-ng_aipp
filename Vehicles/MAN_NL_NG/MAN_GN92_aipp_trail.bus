@@ -40,8 +40,7 @@ model\passengercabin_GN92_aipp_trail.cfg
 	////////////////////////////////////////////////////////
 
 [varnamelist]
-25
-script\aipp\ai_varlist_aipp.txt
+30
 script\aipp\collision_varlist_aipp.txt
 script\aipp\antrieb_varlist_aipp.txt
 script\aipp\engine_varlist_aipp.txt
@@ -49,6 +48,7 @@ script\aipp\elec_varlist_aipp.txt
 script\aipp\bremse_varlist_gn92_aipp.txt
 script\aipp\auspuff_varlist_aipp.txt
 script\aipp\lights_varlist_aipp.txt
+script\aipp\lights_aipp_map_delegate_varlist.txt
 script\aipp\door_varlist_aipp.txt
 script\aipp\wiper_varlist_aipp.txt
 script\aipp\cockpit_varlist_aipp.txt
@@ -65,15 +65,22 @@ script\aipp\ticketprinter_varlist_aipp.txt
 script\aipp\articulation_varlist_aipp.txt
 script\aipp\ramplift_varlist_aipp.txt
 script\aipp\spray_varlist_aipp.txt
+script\aipp\tt_vars_aipp.txt
+script\aipp\env_vars_aipp.txt
+script\aipp\temporal_vars_aipp.txt
+script\aipp\map_vars_aipp.txt
+script\aipp\input_vars_aipp.txt
 ..\..\Scripts\up-utils\up-utils_vars.txt
 
 [stringvarnamelist]
-5
-script\aipp\ai_stringvarlist_aipp.txt
+7
 script\aipp\ibis_stringvarlist_aipp.txt
 script\aipp\vmatrix_stringvarlist_aipp.txt
 script\aipp\ticketprinter_stringvarlist_aipp.txt
+script\aipp\door_stringvars_aipp.txt
 script\aipp\cockpit_stringvarlist_aipp.txt
+script\aipp\tt_stringvars_aipp.txt
+..\..\Scripts\up-utils\up-utils_stringvars.txt
 
 ################
 Passagiersichten

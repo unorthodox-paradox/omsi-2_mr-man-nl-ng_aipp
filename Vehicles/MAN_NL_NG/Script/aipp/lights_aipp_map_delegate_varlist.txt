@@ -1,0 +1,2 @@
+ai_sufficiently_dark__map
+ai_sufficiently_dark_int__map

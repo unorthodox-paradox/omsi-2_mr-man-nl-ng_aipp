@@ -1,0 +1,12 @@
+ai_current_line
+ai_current_line_last
+ai_current_stop_name
+ai_current_stop_name_last
+ai_terminus_stop_name
+ai_terminus_stop_name_last
+ai_previous_stop_name
+ai_previous_stop_name_last
+ai_next_stop_name
+ai_next_stop_name_last
+ai_virtual_terminus_stop_name
+ai_virtual_terminus_stop_name_last

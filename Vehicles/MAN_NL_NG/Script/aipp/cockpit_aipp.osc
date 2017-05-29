@@ -90,7 +90,6 @@
 
 	0.333 (S.L.cockpit_wischer_drehschalter)
 
-
 	350 (M.V.NrSpecRandom) 5 * 7.5 + (S.L.cp_Fahrgastpendel_traeg)
 	351 (M.V.NrSpecRandom) 5 * 7.5 + (S.L.cp_Fahrgastpendel_2_traeg)
 	352 (M.V.NrSpecRandom) 0.8 * 0.1 + (S.L.cp_Fahrgastpendel_reib)
@@ -104,7 +103,6 @@
     -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
     
     1 (S.L.cockpit_gang3)
-    4 (S.L.antrieb_getr_gangvorwahl)
 
     3 10000 random 1000 / + (S.L.ai_ext_stop_gear_disengagement_delay)
     3 10000 random 1000 / + (S.L.ai_ext_stop_gear_engagement_delay)
@@ -157,12 +155,9 @@
             {if}
                 (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = &&
                 {if}
-                    (L.S.Time) (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt) (C.L.secs_per_day) >=
-                    {if}
-                        (C.L.secs_per_day) (L.S.Time) - (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt)
-                    {endif}
+                    (L.S.GetTime) (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt)
                 {else}
-                    (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_hand_brake_release_time_alt) > ||
+                    (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = (L.S.GetTime) (L.L.ai_ext_stop_hand_brake_release_time_alt) > ||
                     {if}
                         0 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
                         (T.L.ev_bremse_feststell_aus)
@@ -181,6 +176,7 @@
             (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s0 (L.L.antrieb_getr_gangvorwahl) 4 = &&
         {if}
             (T.L.ev_gangwahltaster_N)
+            (L.S.GetTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
             1 (S.L.antrieb_getr_gangvorwahl)
             0 (S.L.cockpit_gang3)
         {else}
@@ -188,17 +184,15 @@
             {if}
                 (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = &&
                 {if}
-                    (L.S.Time) (L.L.ai_ext_stop_gear_engagement_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                        max s1 + (S.L.ai_ext_stop_gear_engagement_time_alt) (C.L.secs_per_day) >=
-                    {if}
-                        (C.L.secs_per_day) (L.S.Time) - l1 + (S.L.ai_ext_stop_gear_engagement_time_alt)
-                    {endif}
+                    (L.S.GetTime) (L.L.ai_ext_stop_gear_engagement_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
+                        max s1 + (S.L.ai_ext_stop_gear_engagement_time_alt)
                 {else}
-                    (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_gear_engagement_time_alt) > ||
+                    (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = (L.S.GetTime) (L.L.ai_ext_stop_gear_engagement_time_alt) > ||
                     {if}
                         (T.L.ev_gangwahltaster)
                         4 (S.L.antrieb_getr_gangvorwahl)
                         1 (S.L.cockpit_gang3)
+                        (L.S.GetTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
                         (L.L.ai_ext_stop_gear_engagement_time_alt) - 1 = !
                         {if}
                             -1 (S.L.ai_ext_stop_gear_engagement_time_alt)

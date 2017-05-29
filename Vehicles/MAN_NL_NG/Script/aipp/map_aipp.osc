@@ -1,0 +1,3 @@
+{macro:map_init}
+    "aipp_map_id" (M.V.GetBusstopIndex) 0 (M.V.GetBusstopString) $StrToFloat (S.L.map_id)
+{end}

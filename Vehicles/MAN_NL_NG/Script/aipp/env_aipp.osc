@@ -1,0 +1,23 @@
+{macro:env_frame}
+    (M.L.ai_sun_alt_frame)
+    (M.L.ai_precip_rate_frame)
+    (M.L.ai_env_brightness_frame)
+{end}
+
+{macro:ai_sun_alt_frame}
+    (L.S.SunAlt) -90 max 90 min (S.L.ai_sun_alt)
+{end}
+
+{macro:ai_precip_rate_frame}
+    (L.L.PrecipType) 0 max 2 min (L.L.PrecipRate) 0 max * (S.L.ai_precip_rate)
+{end}
+
+{macro:ai_env_brightness_frame}
+    (L.L.ai_sun_alt) (F.L.env_brightness_max_f_solar_elevation_angle) (L.L.Envir_Brightness) 0 max 1 min min (L.L.ai_precip_rate)
+        (F.L.env_brightness_reduction_f_precip_rate) - 0 max s0
+    (L.L.AI) (L.L.AI_Light) 0 max &&
+    {if}
+        l0 0.65 min s0
+    {endif}
+    l0 (S.L.ai_env_brightness)
+{end}

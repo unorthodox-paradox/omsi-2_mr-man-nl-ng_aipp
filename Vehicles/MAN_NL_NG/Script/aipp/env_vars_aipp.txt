@@ -1,0 +1,3 @@
+ai_sun_alt
+ai_env_brightness
+ai_precip_rate

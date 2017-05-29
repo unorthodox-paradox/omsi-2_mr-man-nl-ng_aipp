@@ -36,7 +36,6 @@ engine_brake_target
 engine_brake_active
 engine_brake_timer
 
-
 engine_Qrate_engine
 engine_Qrate_cooling
 engine_Qrate_fan
@@ -62,3 +61,5 @@ throttle_pedal_pos
 brake_pedal_pos
 throttle_level
 throttle_adj_rate_debug
+
+AI_engine_n_soll

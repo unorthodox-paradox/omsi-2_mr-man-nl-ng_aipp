@@ -4,7 +4,7 @@ Getriebeversion:
 3: Retarder nicht im 1. Gang, Neutralschaltung
 [const]
 antrieb_getr_version
-2
+1
 
 Zeit für den Wechsel zwischen Retarder und Traktion (nur bei Getriebeversion 2)
 [const]

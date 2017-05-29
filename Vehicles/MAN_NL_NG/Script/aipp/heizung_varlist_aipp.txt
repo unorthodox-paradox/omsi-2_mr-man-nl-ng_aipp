@@ -35,3 +35,5 @@ heater_verteilung
 heater_verteilung_sel
 
 cabinheater_RPM
+
+AI_temp

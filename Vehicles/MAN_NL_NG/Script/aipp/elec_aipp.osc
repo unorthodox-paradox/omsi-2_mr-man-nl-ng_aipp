@@ -38,6 +38,7 @@
 	1 1000 random 1000 / sqrt sqrt / 1 -
 	1 (L.L.wearlifespan) / sqrt *
 	(S.L.elec_battery_age)
+    1 (S.L.elec_busbar_main_sw)
 {end}
 
 '===========================================
@@ -165,9 +166,6 @@
 		0
 	{endif}
 	(S.L.elec_busbar_avail)
-
-'TEST: Gaspedal stellt Busbar ein! ;-)
-'	(L.L.Clutch) (S.L.elec_busbar_avail)
 
 'Wenn Spannung an Busbar anliegt und Schalter an ist und kein Kurzschluss vorliegt, dann kommt die volle Spannung:
 

@@ -23,6 +23,24 @@
 
 '------------------------------------------------------------------------------------------
 
+{trigger:collision}
+	(M.L.Collision_Trigger)
+{end}
+
+{trigger:malfunction_reset}
+	(M.L.Collision_Malfunction_Reset)
+	(M.L.Elec_Malfunction_Reset)
+	(M.L.lights_repair)
+{end}
+
+{trigger:malfunction_gettime}
+	0 s0
+	(M.L.Collision_Malfunction_TimeCalc)
+	(M.L.Elec_Malfunction_TimeCalc)
+	(M.L.lights_repair_timecalc)
+	l0
+{end}
+
 {macro:Collision_Malfunction_Reset}
 	0
 	(S.L.collision_energy)
