@@ -168,10 +168,6 @@
         (M.L.ai_can_depart_with_front_door_open_initial) (L.L.ai_arrived_with_front_door_open)
         {if}
             1 (S.L.door_0) (S.L.door_1) (S.L.doorTarget_0) (S.L.doorTarget_1)
-                (L.L.AI_Scheduled_AtStation) -1 =
-            {if}
-                0 (S.L.AI_Scheduled_AtStation)
-            {endif}
         {endif}
 
         1 (S.L.ai_env_perception_initialized)
@@ -733,7 +729,7 @@
         {if}
             (M.L.ai_is_at_terminus_stop)
             (M.L.ai_is_at_last_pre_terminus_stop)
-            (M.L.ai_calc_time_to_dep)
+            (M.L.ai_calc_stop_duration)
             (M.L.ai_is_delayed_upon_arrival)
             (M.L.ai_is_at_extended_stop)
 
@@ -758,7 +754,7 @@
             1 150 random 100 / + (S.L.ai_front_door_departure_closing_delay)
             1 500 random 100 / + (S.L.ai_front_door_departure_prolonged_closing_delay)
             1 500 random 100 / + (S.L.ai_back_door_departure_closing_delay)
-            
+
             5 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly)
             10 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly_rainy)
             10 random 0 = (S.L.ai_open_front_door_ext_stop_neutral_to_chilly_night)
@@ -766,7 +762,7 @@
             5 random 0 = (S.L.ai_open_front_door_ext_stop_ideal_rainy)
             5 random 0 = (S.L.ai_open_front_door_ext_stop_ideal_night)
             3 random 0 = (S.L.ai_open_front_door_ext_stop_warm_rainy)
-            
+
             3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly)
             5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_rainy)
             5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_neutral_to_chilly_night)
@@ -776,30 +772,30 @@
             2 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_warm_rainy)
             3 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_hot_dry)
             5 random 0 = (S.L.ai_open_front_door_prolonged_terminus_stop_hot_dry_day)
-            
+
             5 random 0 = (S.L.ai_open_front_door_normal_terminus_stop_warm_dry)
             5 random 0 = (S.L.ai_open_front_door_normal_terminus_stop_warm_dry_night)
-            
+
             20 random 0 = (S.L.ai_open_front_door_last_pre_terminus_stop_ideal)
             10 random 0 = (S.L.ai_open_front_door_last_pre_terminus_stop_warm)
-            
+
             25 random 0 = (S.L.ai_open_front_door_normal_stop_ideal_dry_day)
             15 random 0 = (S.L.ai_open_front_door_normal_stop_warm_dry)
 
             3 random 0 = (S.L.ai_use_door_1_neutral_to_chilly)
             3 random 0 = ! (S.L.ai_use_door_1_ideal)
             5 random 0 = (S.L.ai_use_door_1_hot)
-            
+
             10 random 0 = (S.L.ai_override_back_doors_ext_stop_ideal_dry_day)
             5 random 0 = (S.L.ai_override_back_doors_ext_stop_warm_dry)
             3 random 0 = ! (S.L.ai_override_back_doors_ext_stop_hot_dry)
 
-            0 (S.L.ai_stop_departure_initialized) (S.L.door_AI_timer) (S.L.ai_stop_timer)
+            0 (S.L.ai_stop_departure_initialized) (S.L.ai_interstop_initialized) (S.L.door_AI_timer) (S.L.ai_stop_timer)
 
             10 20 random + (S.L.ai_passenger_window_hatch_actualization_delay_stop)
-            
+
             0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
-            
+
             (L.L.ai_at_extended_stop)
             {if}
                 (L.L.ai_estimated_stop_duration) 120 <
@@ -827,7 +823,12 @@
             
             (M.L.ai_calc_front_door_static_opening_preconditions)
             (M.L.ai_calc_back_door_static_opening_preconditions)
-            
+
+            (L.L.ai_combine_stops) 2 = !
+            {if}
+                (L.L.ai_current_stop_tt_index) (L.L.ai_stop_count) 1 - 0 max = (S.L.ai_combine_stops)
+            {endif}
+
             1 (S.L.ai_stop_arrival_initialized)
         {endif}
         (L.L.ai_env_perception_changed)
@@ -1089,228 +1090,272 @@
         {endif}
         (L.L.ai_stop_timer) (L.S.Timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
     {else}
-        (L.L._r8) -1 =
+        (L.L._r8) -1 = (L.L.ai_combine_stops) 2 = ||
         {if}
 
-            (L.L.ai_stop_departure_initialized) !
+            (L.L.ai_combine_stops) 1 = (L.L.ai_current_stop_tt_index) ! &&
             {if}
-                100 random 50 / 0.5 max 2 min (S.L.ai_stop_brake_release_delay)
-                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
-                {if}
-                    -15 15000 random 1000 / - (S.L.door_AI_timer)
-                    15000 random 1000 / /-/ (S.L.ai_terminus_stop_delayed_entry_req_departure_delay)
-                {else}
-                    0 (S.L.door_AI_timer)
-                {endif}
-                0 (S.L.ai_stop_arrival_initialized)
-                1 (S.L.ai_stop_departure_initialized)
-            {endif}
-            
-            (L.L.ai_env_perception_changed)
-            {if}
-                (M.L.ai_calc_front_door_static_opening_preconditions)
-                (M.L.ai_calc_back_door_static_opening_preconditions)
-            {endif}
-            
-            (L.L.ai_env_perception_hot) (L.L.ai_env_perception_rainy) ! && (L.L.ai_ext_stop_turn_engine_off) &&
-                (L.L.ai_ext_stop_env_hot_dry_opened_driver_window) &&
-            {if}
-                (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) -1 =
-                {if}
-                    (L.S.Time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay_alt) s1 + (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
-                        (C.L.secs_per_day) >=
-                    {if}
-                        (C.L.secs_per_day) (L.S.Time) - l1 + (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
-                    {endif}
-                {else}
-                    (L.S.Time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) >
-                    {if}
-                        (L.L.ai_env_perception_daytime)
-                        {if}
-                            25 random 100 /
-                        {else}
-                            100 random 100 /
-                        {endif}
-                        (L.L.ai_cp_fahrerfenster_pos_target) min (S.L.ai_cp_fahrerfenster_pos_target)
-                        0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
-                        -1 (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
-                    {endif}
-                {endif}
-            {endif}
-
-            (L.L.door_handsteuerung)
-            {if}
-                (L.L.ai_door_23_last_op) 2 = !
-                {if}
-                    2 (S.L.ai_door_23_last_op)
-                    (L.L._game_time) (L.L.ai_back_door_departure_closing_delay) + (S.L.ai_door_23_last_trigered)
-                {endif}
-                (L.L._game_time) (L.L.ai_door_23_last_trigered) >
-                {if}
-                    0 (S.L.door_handsteuerung) (S.L.ai_door_23_last_op)
-                    (T.L.ev_kippschalter_aus)
-                {endif}
-            {endif}
-
-            (L.L.ai_front_door_entry_req)
-            {if}
-                -1 (S.L.ai_depart_with_front_door_open)
-                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
-                {if}
-                    (L.L.door_AI_timer) (L.L.ai_terminus_stop_delayed_entry_req_departure_delay) min (S.L.door_AI_timer)
-                {endif}
-                (L.L.doorTarget_0) !
-                {if}
-                    (L.L.ai_door_0_last_op) 1 = !
-                    {if}
-                        1 (S.L.ai_door_0_last_op)
-                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_0_last_trigered)
-                    {endif}
-                    (L.L._game_time) (L.L.ai_door_0_last_trigered) >
-                    {if}
-                        (M.L.trg_bus_doorfront0)
-                        (L.L.ai_open_door_1_preconditions)
-                        {if}
-                            1 (S.L.ai_door_1_last_op)
-                            (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
-                        {endif}
-                        0 (S.L.ai_door_0_last_op)
-                    {endif}
-                {endif}
-                (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_1) ! &&
-                {if}
-                    (L.L.ai_door_1_last_op) 1 = !
-                    {if}
-                        1 (S.L.ai_door_1_last_op)
-                        (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_1_last_trigered)
-                    {endif}
-                    (L.L._game_time) (L.L.ai_door_1_last_trigered) >
-                    {if}
-                        (M.L.trg_bus_doorfront1)
-                    {endif}
-                    0 (S.L.ai_door_1_last_op)
-                {endif}
+                2 (S.L.ai_combine_stops)
+                0 (S.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station)
+                -1 (S.L.ai_scheduled_at_station_last)
             {else}
-                (L.L.door_AI_timer) 0 > (L.L.ai_depart_with_front_door_open) -1 = &&
+
+                (L.L.ai_scheduled_at_station_last) 1 =
                 {if}
-                    (M.L.ai_can_depart_with_front_door_open)
-                {endif}
-                (L.L.ai_depart_with_front_door_open) !
-                {if}
-                    (L.L.doorTarget_1)
+                    (L.L.ai_current_stop_index) (L.L.ai_current_stop_index_last) = ! (L.L.ai_terminus_stop_index) (L.L.ai_terminus_stop_index_last) = ! ||
+                        (L.L.ai_virtual_terminus_stop_index) (L.L.ai_virtual_terminus_stop_index_last) = ! || (L.$.ai_current_line) (L.$.ai_current_line_last) $= ! ||
+                        (L.L.ai_current_stop_tt_index) (L.L.ai_current_stop_tt_index_last) = ! ||
                     {if}
-                        (L.L.ai_door_1_last_op) 2 = !
+                        (M.L.ai_is_at_terminus_stop)
+                        (M.L.ai_calc_stop_duration)
+                        (M.L.ai_is_at_extended_stop)
+                        0 (S.L.ai_stop_departure_initialized)
+                    {endif}
+                {endif}
+            
+                (L.L.ai_stop_departure_initialized) !
+                {if}
+                    100 random 50 / 0.5 max 2 min (S.L.ai_stop_brake_release_delay)
+                    (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                    {if}
+                        -15 15000 random 1000 / - (S.L.door_AI_timer)
+                        15000 random 1000 / /-/ (S.L.ai_terminus_stop_delayed_entry_req_departure_delay)
+                    {else}
+                        0 (S.L.door_AI_timer)
+                    {endif}
+                    0 (S.L.ai_stop_arrival_initialized) (S.L.ai_interstop_initialized)
+                    1 (S.L.ai_stop_departure_initialized)
+                {endif}
+            
+                (L.L.ai_env_perception_changed)
+                {if}
+                    (M.L.ai_calc_front_door_static_opening_preconditions)
+                    (M.L.ai_calc_back_door_static_opening_preconditions)
+                {endif}
+            
+                (L.L.ai_env_perception_hot) (L.L.ai_env_perception_rainy) ! && (L.L.ai_ext_stop_turn_engine_off) &&
+                    (L.L.ai_ext_stop_env_hot_dry_opened_driver_window) &&
+                {if}
+                    (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) -1 =
+                    {if}
+                        (L.L._game_time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_delay_alt) s1 + (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
+                    {else}
+                        (L.L._game_time) (L.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt) >
                         {if}
-                            2 (S.L.ai_door_1_last_op)
-                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                            (L.L.ai_env_perception_daytime)
                             {if}
-                                (L.L.ai_front_door_departure_prolonged_closing_delay)
+                                25 random 100 /
                             {else}
-                                (L.L.ai_front_door_departure_closing_delay)
+                                100 random 100 /
                             {endif}
-                            (L.L._game_time) + (S.L.ai_door_1_last_trigered)
-                        {endif}
-                        (L.L._game_time) (L.L.ai_door_1_last_trigered) >
-                        {if}
-                            (M.L.trg_bus_doorfront1)
-                            2 (S.L.ai_door_0_last_op)
-                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
-                            {if}
-                                (L.L.ai_front_door_first_to_second_wing_prolonged_closing_interval)
-                            {else}
-                                (L.L.ai_front_door_first_to_second_wing_closing_interval)
-                            {endif}
-                            (L.L._game_time) + (S.L.ai_door_0_last_trigered)
-                            0 (S.L.ai_door_1_last_op)
+                            (L.L.ai_cp_fahrerfenster_pos_target) min (S.L.ai_cp_fahrerfenster_pos_target)
+                            0 (S.L.ai_ext_stop_env_hot_dry_opened_driver_window)
+                            -1 (S.L.ai_ext_stop_env_hot_dry_driver_window_closing_time_alt)
                         {endif}
                     {endif}
-                    (L.L.doorTarget_0) (L.L.doorTarget_1) ! &&
+                {endif}
+
+                (L.L.door_handsteuerung)
+                {if}
+                    (L.L.ai_door_23_last_op) 2 = !
                     {if}
-                        (L.L.ai_door_0_last_op) 2 = !
+                        2 (S.L.ai_door_23_last_op)
+                        (L.L._game_time) (L.L.ai_back_door_departure_closing_delay) + (S.L.ai_door_23_last_trigered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_door_23_last_trigered) >
+                    {if}
+                        0 (S.L.door_handsteuerung) (S.L.ai_door_23_last_op)
+                        (T.L.ev_kippschalter_aus)
+                    {endif}
+                {endif}
+
+                (L.L.ai_front_door_entry_req)
+                {if}
+                    -1 (S.L.ai_depart_with_front_door_open)
+                    (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                    {if}
+                        (L.L.door_AI_timer) (L.L.ai_terminus_stop_delayed_entry_req_departure_delay) min (S.L.door_AI_timer)
+                    {endif}
+                    (L.L.doorTarget_0) !
+                    {if}
+                        (L.L.ai_door_0_last_op) 1 = !
                         {if}
-                            2 (S.L.ai_door_0_last_op)
-                            (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
-                            {if}
-                                (L.L.ai_front_door_departure_prolonged_closing_delay)
-                            {else}
-                                (L.L.ai_front_door_departure_closing_delay)
-                            {endif}
-                            (L.L._game_time) + (S.L.ai_door_0_last_trigered)
+                            1 (S.L.ai_door_0_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_0_last_trigered)
                         {endif}
                         (L.L._game_time) (L.L.ai_door_0_last_trigered) >
                         {if}
                             (M.L.trg_bus_doorfront0)
+                            (L.L.ai_open_door_1_preconditions)
+                            {if}
+                                1 (S.L.ai_door_1_last_op)
+                                (L.L._game_time) (L.L.ai_front_door_first_to_second_wing_opening_interval) + (S.L.ai_door_1_last_trigered)
+                            {endif}
                             0 (S.L.ai_door_0_last_op)
                         {endif}
                     {endif}
-                {endif}
-            {endif}
-
-            (L.L.door_AI_timer) (L.S.Timegap) + (S.L.door_AI_timer)
-            (L.L.ai_stop_timer) (L.S.Timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
-            
-            (L.L.door_2) ! (L.L.door_4) ! && (L.L.doorTarget_23) ! && (L.L.doorTarget_45) ! && (L.L.doorSpeed_2) ! &&
-                (L.L.doorSpeed_3) ! && (L.L.doorSpeed_4) ! && (L.L.doorSpeed_5) ! && (L.L.bremse_halte_sw) &&
-            {if}
-                (L.L.ai_depart_with_front_door_open) 1 = (L.L.ai_depart_with_front_door_open) ! (L.L.doorTarget_0) !
-                    (L.L.humans_count) (L.L.ai_departure_with_front_door_open_if_human_count_below) <= (L.L.door_0)
-                    (L.L.ai_front_door_max_open_pos_on_departure_high) <= && (L.L.humans_count)
-                    (L.L.ai_departure_with_front_door_open_if_human_count_below) > (L.L.door_0)
-                    (L.L.ai_front_door_max_open_pos_on_departure_low) <= && || && (L.L.doorTarget_1) !
-                    (L.L.humans_count) (L.L.ai_departure_with_front_door_open_if_human_count_below) <= (L.L.door_1)
-                    (L.L.ai_front_door_max_open_pos_on_departure_high) <= && (L.L.humans_count)
-                    (L.L.ai_departure_with_front_door_open_if_human_count_below) > (L.L.door_1)
-                    (L.L.ai_front_door_max_open_pos_on_departure_low) <= && || && && && ||
-                {if}
-                    (L.L.ai_stop_departure_initialized) 2 = !
+                    (L.L.ai_open_door_1_preconditions) (L.L.doorTarget_1) ! &&
                     {if}
-                        (L.L.door_AI_timer) 0 >
+                        (L.L.ai_door_1_last_op) 1 = !
                         {if}
-                            0 (S.L.door_AI_timer)
-                            2 (S.L.ai_stop_departure_initialized)
+                            1 (S.L.ai_door_1_last_op)
+                            (L.L._game_time) (L.L.ai_front_door_entry_req_trigered_opening_delay) + (S.L.ai_door_1_last_trigered)
                         {endif}
-                    {else}
-                        (L.L.door_AI_timer) (L.L.ai_stop_brake_release_delay) >
+                        (L.L._game_time) (L.L.ai_door_1_last_trigered) >
                         {if}
-                            0 (S.L.bremse_halte_sw) (S.L.AI_Scheduled_AtStation) (S.L.ai_stop_departure_initialized)
-                            (T.L.ev_haltebremse_sw_aus)
-                            (L.L.ai_depart_with_front_door_open) 0 max 1 min (S.L.ai_arrived_with_front_door_open)
-                            -1 (S.L.ai_depart_with_front_door_open)
+                            (M.L.trg_bus_doorfront1)
+                        {endif}
+                        0 (S.L.ai_door_1_last_op)
+                    {endif}
+                {else}
+                    (L.L.door_AI_timer) 0 > (L.L.ai_depart_with_front_door_open) -1 = &&
+                    {if}
+                        (M.L.ai_can_depart_with_front_door_open)
+                    {endif}
+                    (L.L.ai_depart_with_front_door_open) !
+                    {if}
+                        (L.L.doorTarget_1)
+                        {if}
+                            (L.L.ai_door_1_last_op) 2 = !
+                            {if}
+                                2 (S.L.ai_door_1_last_op)
+                                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                                {if}
+                                    (L.L.ai_front_door_departure_prolonged_closing_delay)
+                                {else}
+                                    (L.L.ai_front_door_departure_closing_delay)
+                                {endif}
+                                (L.L._game_time) + (S.L.ai_door_1_last_trigered)
+                            {endif}
+                            (L.L._game_time) (L.L.ai_door_1_last_trigered) >
+                            {if}
+                                (M.L.trg_bus_doorfront1)
+                                2 (S.L.ai_door_0_last_op)
+                                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                                {if}
+                                    (L.L.ai_front_door_first_to_second_wing_prolonged_closing_interval)
+                                {else}
+                                    (L.L.ai_front_door_first_to_second_wing_closing_interval)
+                                {endif}
+                                (L.L._game_time) + (S.L.ai_door_0_last_trigered)
+                                0 (S.L.ai_door_1_last_op)
+                            {endif}
+                        {endif}
+                        (L.L.doorTarget_0) (L.L.doorTarget_1) ! &&
+                        {if}
+                            (L.L.ai_door_0_last_op) 2 = !
+                            {if}
+                                2 (S.L.ai_door_0_last_op)
+                                (L.L.ai_at_extended_stop) (L.L.ai_at_terminus_stop) ||
+                                {if}
+                                    (L.L.ai_front_door_departure_prolonged_closing_delay)
+                                {else}
+                                    (L.L.ai_front_door_departure_closing_delay)
+                                {endif}
+                                (L.L._game_time) + (S.L.ai_door_0_last_trigered)
+                            {endif}
+                            (L.L._game_time) (L.L.ai_door_0_last_trigered) >
+                            {if}
+                                (M.L.trg_bus_doorfront0)
+                                0 (S.L.ai_door_0_last_op)
+                            {endif}
                         {endif}
                     {endif}
                 {endif}
-            {else}
-                (L.L.bremse_halte_sw) !
+
+                (L.L.door_AI_timer) (L.S.Timegap) + (S.L.door_AI_timer)
+                (L.L.ai_stop_timer) (L.L.ai_timegap) + (L.L.ai_estimated_stop_duration) min (S.L.ai_stop_timer)
+            
+                (L.L.door_2) ! (L.L.door_4) ! && (L.L.doorTarget_23) ! && (L.L.doorTarget_45) ! && (L.L.doorSpeed_2) ! &&
+                    (L.L.doorSpeed_3) ! && (L.L.doorSpeed_4) ! && (L.L.doorSpeed_5) ! && (L.L.bremse_halte_sw) &&
                 {if}
-                    0 (S.L.AI_Scheduled_AtStation) (S.L.ai_stop_departure_initialized) (L.L.ai_depart_with_front_door_open) 0 max 1 min
-                        (S.L.ai_arrived_with_front_door_open)
-                    -1 (S.L.ai_depart_with_front_door_open)
+                    (L.L.ai_depart_with_front_door_open) 1 = (L.L.ai_depart_with_front_door_open) ! (L.L.doorTarget_0) !
+                        (L.L.humans_count) (L.L.ai_departure_with_front_door_open_if_human_count_below) <= (L.L.door_0)
+                        (L.L.ai_front_door_max_open_pos_on_departure_high) <= && (L.L.humans_count)
+                        (L.L.ai_departure_with_front_door_open_if_human_count_below) > (L.L.door_0)
+                        (L.L.ai_front_door_max_open_pos_on_departure_low) <= && || && (L.L.doorTarget_1) !
+                        (L.L.humans_count) (L.L.ai_departure_with_front_door_open_if_human_count_below) <= (L.L.door_1)
+                        (L.L.ai_front_door_max_open_pos_on_departure_high) <= && (L.L.humans_count)
+                        (L.L.ai_departure_with_front_door_open_if_human_count_below) > (L.L.door_1)
+                        (L.L.ai_front_door_max_open_pos_on_departure_low) <= && || && && && ||
+                    {if}
+                        (L.L.ai_stop_departure_initialized) 2 = !
+                        {if}
+                            (L.L.door_AI_timer) 0 >
+                            {if}
+                                0 (S.L.door_AI_timer)
+                                2 (S.L.ai_stop_departure_initialized)
+                            {endif}
+                        {else}
+                            (L.L.door_AI_timer) (L.L.ai_stop_brake_release_delay) >
+                            {if}
+                                0 (S.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station) (S.L.ai_stop_departure_initialized)
+                                    (S.L.ai_interstop_initialized)
+                                (L.L.ai_depart_with_front_door_open) 0 max 1 min (S.L.ai_arrived_with_front_door_open)
+                                -1 (S.L.ai_scheduled_at_station_last) (S.L.ai_depart_with_front_door_open)
+                                (L.L.ai_combine_stops) 2 =
+                                {if}
+                                    0 (S.L.ai_combine_stops)
+                                {endif}
+                            {endif}
+                        {endif}
+                    {endif}
+                {else}
+                    (L.L.bremse_halte_sw) !
+                    {if}
+                        0 (S.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station) (S.L.ai_stop_arrival_initialized) (S.L.ai_stop_departure_initialized)
+                            (S.L.ai_interstop_initialized)
+                        (L.L.ai_depart_with_front_door_open) 0 max 1 min (S.L.ai_arrived_with_front_door_open)
+                        -1 (S.L.ai_scheduled_at_station_last) (S.L.ai_depart_with_front_door_open)
+                        (L.L.ai_combine_stops) 2 =
+                        {if}
+                            0 (S.L.ai_combine_stops)
+                        {endif}
+                    {endif}
                 {endif}
             {endif}
         {else}
             (L.L.AI)
             {if}
-                0 (S.L.ai_stop_arrival_initialized) (S.L.ai_stop_departure_initialized)
+                (L.L.ai_current_stop_tt_index) (L.L.ai_current_stop_tt_index_last) = ! (L.$.ai_current_stop_name) (L.$.ai_current_stop_name_last) $= ! ||
+                    (L.$.ai_current_line) (L.$.ai_current_line_last) $= ! || (L.L.ai_current_stop_index) (L.L.ai_current_stop_index_last) = ! ||
+                    (L.L.ai_terminus_stop_index) (L.L.ai_terminus_stop_index_last) = ! || (L.L.ai_virtual_terminus_stop_index)
+                    (L.L.ai_virtual_terminus_stop_index_last) = ! ||
+                {if}
+                    0 (S.L.ai_interstop_initialized)
+                {endif}
+                (L.L.ai_interstop_initialized) !
+                {if}   
+                    0 (S.L.ai_stop_arrival_initialized) (S.L.ai_stop_departure_initialized) (S.L.ai_interstop_timer) (S.L.ai_interstop_distance_tracker)
+                    1 (S.L.ai_interstop_initialized)
+                {endif}
+                (L.L.ai_interstop_timer) (L.L.ai_timegap) + (S.L.ai_interstop_timer)
+                (L.L.ai_interstop_distance_tracker) (L.L.velocity_ground) 1000 * (C.L.secs_per_min) d * / (L.S.Timegap) * + (S.L.ai_interstop_distance_tracker)
                 (L.L.brake) (L.L.velocity) abs 0.05 < &&
                 {if}
                     (L.L.ai_unscheduled_stop_initialized) !
                     {if}
-                        3 random 1 =
+                        (L.L.bremse_halte_sw)
                         {if}
-                            6 random s7 2 <
-                            {if}
-                                0.3 3 random + (S.L.ai_standstill_stop_brake_usage_threshold)
-                            {else}
-                                l7 5 <
-                                {if}
-                                    5 25 random + (S.L.ai_standstill_stop_brake_usage_threshold)
-                                {else}
-                                    30 60 random + (S.L.ai_standstill_stop_brake_usage_threshold)
-                                {endif}
-                            {endif}
                             1 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
                         {else}
-                            0 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
+                            3 random 1 =
+                            {if}
+                                6 random s7 2 <
+                                {if}
+                                    0.3 3 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                                {else}
+                                    l7 5 <
+                                    {if}
+                                        5 25 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                                    {else}
+                                        30 60 random + (S.L.ai_standstill_stop_brake_usage_threshold)
+                                    {endif}
+                                {endif}
+                                1 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
+                            {else}
+                                0 (S.L.ai_engage_stop_brake_at_unscheduled_stop)
+                            {endif}
                         {endif}
                         0 (S.L.ai_stop_brake_sw_timer) (S.L.ai_unscheduled_stop_wait_op_pending)
                         1 (S.L.ai_unscheduled_stop_initialized)
@@ -1320,7 +1365,7 @@
                         1 (S.L.ai_engage_stop_brake_at_unscheduled_stop) (S.L.ai_unscheduled_stop_wait_op_pending)
                         (L.L.ai_standstill_stop_brake_usage_threshold) (S.L.ai_stop_brake_sw_timer)
                     {endif}
-                    (L.L.ai_engage_stop_brake_at_unscheduled_stop) (L.L.ai_unscheduled_stop_initialized) 1 = &&
+                    (L.L.ai_engage_stop_brake_at_unscheduled_stop) (L.L.ai_unscheduled_stop_initialized) 1 = && (L.L.bremse_halte_sw) ! &&
                     {if}
                         (L.L.ai_stop_brake_sw_timer) (L.L.ai_standstill_stop_brake_usage_threshold) <
                         {if}
@@ -1333,6 +1378,11 @@
                             (T.L.ev_haltebremse_sw_an)
                             0 (S.L.ai_unscheduled_stop_timer) (S.L.door_AI_timer)
                             5 25 random + (S.L.ai_passenger_window_hatch_actualization_delay_stop)
+                        {endif}
+                    {else}
+                        (L.L.bremse_halte_sw)
+                        {if}
+                            2 (S.L.ai_unscheduled_stop_initialized)
                         {endif}
                     {endif}
                     (L.L.ai_unscheduled_stop_initialized) 2 =
@@ -1357,9 +1407,14 @@
                     (L.L.ai_unscheduled_stop_wait_op_pending) !
                     {if}
                         0 (S.L.ai_unscheduled_stop_initialized)
-                        (L.L.door_20h_sw)
+                        (L.L.door_20h_sw) (L.L.bremse_halte_sw) ||
                         {if}
-                            0 (S.L.door_20h_sw)
+                            (L.L.door_20h_sw)
+                            {if}
+                                0 (S.L.door_20h_sw)
+                            {else}
+                                0 (S.L.bremse_halte_sw)
+                            {endif}
                             (T.L.ev_haltebremse_sw_aus)
                         {endif}
                     {endif}
@@ -2352,7 +2407,7 @@
 {end}
 
 {macro:ai_can_depart_with_front_door_open}
-    (M.V.GetTTBusstopIndex) 0 max s1 s2 (M.V.GetTTBusstopCount) 1 - 0 max >= l1 2 < ||
+    (L.L.ai_current_stop_tt_index) 0 max s1 s2 (L.L.ai_stop_count) 1 - 0 max >= l1 2 < ||
     {if}
         0 s2
     {endif}
@@ -2386,7 +2441,7 @@
 {end}
 
 {macro:ai_can_depart_with_front_door_open_initial}
-    (M.V.GetTTBusstopIndex) 0 max s1 s2 (M.V.GetTTBusstopCount) 1 - 0 max >= l1 2 < ||
+    (L.L.ai_current_stop_tt_index) 0 max s1 s2 (L.L.ai_stop_count) 1 - 0 max >= l1 2 < ||
     {if}
         0 s2
     {endif}
@@ -2408,27 +2463,20 @@
 {end}
 
 {macro:ai_is_at_terminus_stop}
-    (M.V.GetTTBusstopIndex) s0 (M.V.GetTTBusstopCount) 1 - 0 max = l0 ! || (S.L.ai_at_terminus_stop)
+    (L.L.ai_current_stop_tt_index) s0 (L.L.ai_stop_count) 1 - 0 max = l0 ! || (S.L.ai_at_terminus_stop)
 {end}
 
 {macro:ai_is_at_last_pre_terminus_stop}
-    (M.V.GetTTBusstopIndex) (M.V.GetTTBusstopCount) 2 - 0 max = (S.L.ai_at_last_pre_terminus_stop)
+    (L.L.ai_current_stop_tt_index) (L.L.ai_stop_count) 2 - 0 max = (S.L.ai_at_last_pre_terminus_stop)
 {end}
 
 {macro:ai_is_at_extended_stop}  
     (L.L.ai_estimated_stop_duration) (L.L.ai_extended_stop_min_duration) >= (S.L.ai_at_extended_stop)
 {endif}
 
-{macro:ai_calc_time_to_dep}
-    (M.V.GetTTBusstopIndex) s0 (M.V.GetTTBusstopDep) (S.L._r11)
-    l0 (M.V.GetTTBusstopArr) (M.V.GetTTDelay) 0 max + (L.L._r11) min (S.L._r10)
-    (L.L._r10) (L.L._r11) <=
-    {if}
-        (L.L._r11) (L.L._r10) - s0
-    {else}
-        (C.L.secs_per_day) (L.L._r10) - (L.L._r11) + s0
-    {endif}
-    l0 (S.L.ai_estimated_stop_duration)
+{macro:ai_calc_stop_duration}
+    (L.L.ai_current_stop_tt_index) s0 (M.V.GetTTBusstopDep) (S.L._r11) l0 (M.V.GetTTBusstopArr) (M.V.GetTTDelay) 0 max + (L.L._r11) min (S.L._r10)
+        (M.L.calc_time_diff) (L.L._r12) (S.L.ai_estimated_stop_duration)
 {end}
 
 {macro:ai_is_delayed_upon_arrival}

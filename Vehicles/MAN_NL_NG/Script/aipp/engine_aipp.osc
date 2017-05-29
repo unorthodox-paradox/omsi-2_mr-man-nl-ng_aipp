@@ -53,7 +53,6 @@
 '------------------------------------------------------------------------------------------
 
 {macro:engine_init}
-	50 200 random + (S.L.engine_tank_content)
 	(L.S.Weather_Temperature) (S.L.engine_temperature) (S.L.engine_temperature_envir)
 	(C.L.engine_RPM_ign_cold) (S.L.engine_RPM_ign)
     1 (S.L.engine_injection_on) (S.L.engine_on)
@@ -66,6 +65,9 @@
 
 
 {macro:engine_frame}
+
+    250 (S.L.engine_tank_content)
+    1 (S.L.tank_percent)
 
     (L.L.AI)
     {if}
@@ -82,12 +84,9 @@
             {if}
                 (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_engine_on_time_alt) -1 = &&
                 {if}
-                    (L.S.Time) (L.L.ai_ext_stop_engine_on_delay_alt) + (S.L.ai_ext_stop_engine_on_time_alt) (C.L.secs_per_day) >=
-                    {if}
-                        (C.L.secs_per_day) (L.S.Time) - (L.L.ai_ext_stop_engine_on_delay_alt) + (S.L.ai_ext_stop_engine_on_time_alt)
-                    {endif}
+                    (L.S.GetTime) (L.L.ai_ext_stop_engine_on_delay_alt) + (S.L.ai_ext_stop_engine_on_time_alt)
                 {else}
-                    (L.L.ai_ext_stop_engine_on_time_alt) -1 = (L.S.Time) (L.L.ai_ext_stop_engine_on_time_alt) > ||
+                    (L.L.ai_ext_stop_engine_on_time_alt) -1 = (L.S.GetTime) (L.L.ai_ext_stop_engine_on_time_alt) > ||
                     {if}
                         1 (S.L.cp_taster_anlasser) (S.L.engine_starter) (S.L.engine_injection_on)
                         (T.L.ev_engine_starter)

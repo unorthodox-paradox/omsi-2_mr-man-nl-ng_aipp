@@ -1,0 +1,59 @@
+{macro:main_init}
+
+    (M.L.map_init)
+	(M.L.engine_Init)
+	(M.L.Antrieb_Init)
+	(M.L.Elec_Init)
+	(M.L.Door_Init)
+	(M.L.wiper_init)
+	(M.L.lights_init)
+	(M.L.bremse_init)
+	(M.L.cockpit_init)
+	(M.L.heizung_init)
+	(M.L.Matrix_init)
+	(M.L.IBIS_init)
+	(M.L.Collision_Init)
+	(M.L.ticketprinter_init)
+	(M.L.ramplift_init)
+	(M.L.articulation_init)
+
+{end}
+
+{macro:main_frame}
+
+    (M.L.temporal_frame_pre)
+
+    (L.S.Pause) !
+    {if}
+
+        (M.L.input_frame)
+        (M.L.env_frame)
+        (M.L.tt_frame)
+        (M.L.Engine_Frame)
+        (M.L.Antrieb_Frame)
+        (M.L.Elec_Frame)
+        (M.L.Door_frame)
+        (M.L.cockpit_frame)
+        (M.L.lights_frame)
+        (M.L.wiper_frame)
+        (M.L.Auspuff_Frame)
+        (M.L.bremse_frame)
+        (M.L.rain_frame)
+        (M.L.dirt_frame)
+        (M.L.sound_volume_frame)
+        (M.L.heizung_frame)
+        (M.L.IBIS_frame)
+        (M.L.Matrix_frame)
+        (M.L.wimpel_frame)
+        (M.L.ticketprinter_frame)
+        (M.L.Collision_Frame)
+        (M.L.articulation_frame)
+        (M.L.ramplift_frame)
+        (M.L.spray_frame)
+
+    {endif}
+
+    (M.L.temporal_frame_post)
+    (M.L.debug_frame)
+
+{end}

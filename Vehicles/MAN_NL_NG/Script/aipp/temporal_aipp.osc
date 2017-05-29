@@ -1,0 +1,29 @@
+{macro:temporal_init}
+    (M.L.ai_game_time_init)
+{end}
+
+{macro:ai_game_time_init}
+    (L.S.GetTime) (S.L.ai_game_time_last) (S.L.ai_game_time_paused_last) (S.L._game_time)
+{end}
+
+{macro:temporal_frame_pre}
+    (M.L.ai_timegap)
+{end}
+
+{macro:ai_timegap}
+    (L.S.Timegap) (S.L._timegap) (L.S.GetTime) (S.L._game_time) (L.L.ai_game_time_last) (L.L.ai_game_time_paused_last) max - 0 max max (S.L.ai_timegap)
+{end}
+
+{macro:temporal_frame_post}
+    (M.L.ai_game_time_frame)
+{end}
+
+{macro:ai_game_time_frame}
+    (L.S.GetTime) s0
+    (L.S.Pause) !
+    {if}
+        l0 (S.L.ai_game_time_last)
+    {else}
+        l0 (S.L.ai_game_time_paused_last)
+    {endif}
+{end}

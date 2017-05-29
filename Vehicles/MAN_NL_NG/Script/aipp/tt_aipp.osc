@@ -1,0 +1,203 @@
+{macro:tt_frame}
+    (M.L.ai_aqcuire_tt_info)
+{end}
+
+{macro:ai_aqcuire_tt_info}
+    (L.L.AI)
+    {if}
+        (L.L.ai_tt_initialized) !
+        {if}
+            (L.L.schedule_active) (S.L.ai_schedule_active) (S.L.ai_schedule_active_last)
+            {if}
+                (M.V.GetTTBusstopCount) (S.L.ai_stop_count) (S.L.ai_stop_count_last)
+                (M.V.GetTTBusstopIndex) (S.L.ai_current_stop_tt_index) (S.L.ai_current_stop_tt_index_last) (M.V.GetTTBusstopName)
+                    $RemoveSpaces (S.$.ai_current_stop_name) (S.$.ai_current_stop_name_last) (M.V.GetBusstopIndex)
+                    (S.L.ai_current_stop_index) (S.L.ai_current_stop_index_last)
+                (M.V.GetTTLineString) $RemoveSpaces (S.$.ai_current_line) (S.$.ai_current_line_last)
+                (L.L.ai_stop_count) 1 - 0 max (S.L.ai_terminus_stop_tt_index) (S.L.ai_terminus_stop_tt_index_last) (M.V.GetTTBusstopName)
+                    $RemoveSpaces (S.$.ai_terminus_stop_name) (S.$.ai_terminus_stop_name_last) (M.V.GetBusstopIndex)
+                    (S.L.ai_terminus_stop_index) (S.L.ai_terminus_stop_index_last)
+                (L.L.ai_current_stop_tt_index) 1 - 0 max (S.L.ai_previous_stop_tt_index) (S.L.ai_previous_stop_tt_index_last)
+                    (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_previous_stop_name) (S.$.ai_previous_stop_name_last) (M.V.GetBusstopIndex)
+                    (S.L.ai_previous_stop_index) (S.L.ai_previous_stop_index_last)
+                (L.L.ai_current_stop_tt_index) 1 + (L.L.ai_stop_count) 1 - 0 max min (S.L.ai_next_stop_tt_index) (S.L.ai_next_stop_tt_index_last)
+                    (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_next_stop_name) (S.$.ai_next_stop_name_last) (M.V.GetBusstopIndex) (S.L.ai_next_stop_index)
+                    (S.L.ai_next_stop_index_last)
+            {else}
+                -1 (S.L.ai_stop_count) (S.L.ai_stop_count_last) (S.L.ai_current_stop_index) (S.L.ai_current_stop_index_last) (S.L.ai_current_stop_tt_index)
+                    (S.L.ai_current_stop_tt_index_last) (S.L.ai_terminus_stop_index) (S.L.ai_terminus_stop_index_last) (S.L.ai_terminus_stop_tt_index)
+                        (S.L.ai_terminus_stop_tt_index_last) (S.L.ai_previous_stop_index) (S.L.ai_previous_stop_index_last) (S.L.ai_previous_stop_tt_index)
+                        (S.L.ai_previous_stop_tt_index_last) (S.L.ai_next_stop_index) (S.L.ai_next_stop_index_last) (S.L.ai_next_stop_tt_index)
+                        (S.L.ai_next_stop_tt_index_last)
+                "" (S.$.ai_current_stop_name) (S.$.ai_current_stop_name_last) (S.$.ai_current_line) (S.$.ai_current_line_last)
+                    (S.$.ai_terminus_stop_name) (S.$.ai_terminus_stop_name_last) (S.$.ai_previous_stop_name) (S.$.ai_previous_stop_name_last)
+                    (S.$.ai_next_stop_name) (S.$.ai_next_stop_name_last)
+            {endif}
+            (M.V.GetTTTerminusIndex) (S.L.ai_virtual_terminus_stop_index) (S.L.ai_virtual_terminus_stop_index_last) 0 (M.V.GetTerminusString) $RemoveSpaces
+                (S.$.ai_virtual_terminus_stop_name) (S.$.ai_virtual_terminus_stop_name_last)
+            (L.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station) (S.L.ai_scheduled_at_station_last)
+            (M.L.ai_is_on_service_trip) (L.L.ai_on_service_trip) (S.L.ai_on_service_trip_last)
+            1 (S.L.ai_tt_initialized) (S.L.ai_tt_first_frame)
+        {else}
+            (L.L.ai_tt_first_frame)
+            {if}
+                0 (S.L.ai_tt_first_frame)
+            {endif}
+            (L.L.schedule_active) s0 (L.L.ai_schedule_active) s1 = !
+            {if}
+                l1 (S.L.ai_schedule_active_last)
+                l0 (S.L.ai_schedule_active) !
+                {if}
+                    (L.L.ai_stop_count) (S.L.ai_stop_count_last)
+                    (L.L.ai_current_stop_index) (S.L.ai_current_stop_index_last)
+                    (L.L.ai_current_stop_tt_index) (S.L.ai_current_stop_tt_index_last)
+                    (L.L.ai_terminus_stop_index) (S.L.ai_terminus_stop_index_last)
+                    (L.L.ai_terminus_stop_tt_index) (S.L.ai_terminus_stop_tt_index_last)
+                    (L.L.ai_previous_stop_index) (S.L.ai_previous_stop_index_last)
+                    (L.L.ai_previous_stop_tt_index) (S.L.ai_previous_stop_tt_index_last)
+                    (L.L.ai_next_stop_index) (S.L.ai_next_stop_index_last)
+                    (L.L.ai_next_stop_tt_index) (S.L.ai_next_stop_tt_index_last)
+                    (L.$.ai_current_stop_name) (S.$.ai_current_stop_name_last)
+                    (L.$.ai_current_line) (S.$.ai_current_line_last)
+                    (L.$.ai_terminus_stop_name) (S.$.ai_terminus_stop_name_last)
+                    (L.$.ai_previous_stop_name) (S.$.ai_previous_stop_name_last)
+                    (L.$.ai_next_stop_name) (S.$.ai_next_stop_name_last)
+                    -1 (S.L.ai_stop_count) (S.L.ai_current_stop_index) (S.L.ai_current_stop_tt_index) (S.L.ai_terminus_stop_index) (S.L.ai_terminus_stop_tt_index)
+                        (S.L.ai_previous_stop_index) (S.L.ai_previous_stop_tt_index) (S.L.ai_next_stop_index) (S.L.ai_next_stop_tt_index)
+                    "" (S.$.ai_current_stop_name) (S.$.ai_current_line) (S.$.ai_terminus_stop_name) (S.$.ai_previous_stop_name) (S.$.ai_next_stop_name)
+                {endif}
+            {else}
+                l1 (L.L.ai_schedule_active_last) s2 = !
+                {if}
+                    l1 (S.L.ai_schedule_active_last)
+                    l2
+                    {if}
+                        -1 (S.L.ai_stop_count_last) (S.L.ai_current_stop_index_last) (S.L.ai_current_stop_tt_index_last) (S.L.ai_terminus_stop_index_last)
+                            (S.L.ai_terminus_stop_tt_index_last) (S.L.ai_previous_stop_index_last) (S.L.ai_previous_stop_tt_index_last)
+                            (S.L.ai_next_stop_index_last) (S.L.ai_next_stop_tt_index_last)
+                        "" (S.$.ai_current_stop_name_last) (S.$.ai_current_line_last) (S.$.ai_terminus_stop_name_last) (S.$.ai_previous_stop_name_last)
+                            (S.$.ai_next_stop_name_last) 
+                    {endif}
+                {endif}
+            {endif}
+            l0
+            {if}
+                0 s2
+                (M.V.GetTTBusstopCount) s0 (L.L.ai_stop_count) s1 = ! s2 l1 (L.L.ai_stop_count_last) = ! ||
+                {if}
+                    l1 (S.L.ai_stop_count_last)
+                    (L.L.ai_terminus_stop_index) (S.L.ai_terminus_stop_index_last)
+                    (L.L.ai_terminus_stop_tt_index) (S.L.ai_terminus_stop_tt_index_last)
+                    (L.$.ai_terminus_stop_name) (S.$.ai_terminus_stop_name_last)
+                    l2
+                    {if}
+                        l0 (S.L.ai_stop_count) 1 - 0 max (S.L.ai_terminus_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_terminus_stop_name)
+                            (M.V.GetBusstopIndex) (S.L.ai_terminus_stop_index)
+                    {endif}
+                {endif}
+                0 s2
+                (M.V.GetTTBusstopIndex) (M.V.GetTTBusstopName) (M.V.GetBusstopIndex) s0 (L.L.ai_current_stop_index) s1 = ! s2 l1 (L.L.ai_current_stop_index_last) = ! ||
+                {if}
+                    l1 (S.L.ai_current_stop_index_last)
+                    (L.L.ai_current_stop_tt_index) (S.L.ai_current_stop_tt_index_last)
+                    (L.$.ai_current_stop_name) (S.$.ai_current_stop_name_last)
+                    (L.L.ai_previous_stop_index) (S.L.ai_previous_stop_index_last)
+                    (L.L.ai_previous_stop_tt_index) (S.L.ai_previous_stop_tt_index_last)
+                    (L.$.ai_previous_stop_name) (S.$.ai_previous_stop_name_last)
+                    (L.L.ai_next_stop_index) (S.L.ai_next_stop_index_last)
+                    (L.L.ai_next_stop_tt_index) (S.L.ai_next_stop_tt_index_last)
+                    (L.$.ai_next_stop_name) (S.$.ai_next_stop_name_last)
+                    l2
+                    {if}
+                        l0 (S.L.ai_current_stop_index)
+                        (M.V.GetTTBusstopIndex) (S.L.ai_current_stop_tt_index) s0 (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_current_stop_name)
+                        l0 1 - 0 max (S.L.ai_previous_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_previous_stop_name)
+                            (M.V.GetBusstopIndex) (S.L.ai_previous_stop_index)
+                        l0 1 + (L.L.ai_stop_count) 1 - 0 max min (S.L.ai_next_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_next_stop_name)
+                            (M.V.GetBusstopIndex) (S.L.ai_next_stop_index)
+                    {endif}
+                {else}
+                    (M.V.GetTTBusstopIndex) s0 (L.L.ai_current_stop_tt_index) s1 = ! s2 l1 (L.L.ai_current_stop_tt_index_last) = ! ||
+                    {if}
+                        l1 (S.L.ai_current_stop_tt_index_last)
+                        (L.$.ai_current_stop_name) (S.$.ai_current_stop_name_last)
+                        (L.L.ai_previous_stop_index) (S.L.ai_previous_stop_index_last)
+                        (L.L.ai_previous_stop_tt_index) (S.L.ai_previous_stop_tt_index_last)
+                        (L.$.ai_previous_stop_name) (S.$.ai_previous_stop_name_last)
+                        (L.L.ai_next_stop_index) (S.L.ai_next_stop_index_last)
+                        (L.L.ai_next_stop_tt_index) (S.L.ai_next_stop_tt_index_last)
+                        (L.$.ai_next_stop_name) (S.$.ai_next_stop_name_last)
+                        l2
+                        {if}
+                            l0 (S.L.ai_current_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_current_stop_name)
+                            l0 1 - 0 max (S.L.ai_previous_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_previous_stop_name)
+                                (M.V.GetBusstopIndex) (S.L.ai_previous_stop_index)
+                            l0 1 + (L.L.ai_stop_count) 1 - 0 max min (S.L.ai_next_stop_tt_index) (M.V.GetTTBusstopName) $RemoveSpaces (S.$.ai_next_stop_name)
+                                (M.V.GetBusstopIndex) (S.L.ai_next_stop_index)
+                        {endif}
+                    {endif}
+                {endif}
+                0 s2
+                (M.V.GetTTBusstopIndex) s0 (L.L.ai_current_stop_tt_index) s1 = ! s2 l1 (L.L.ai_current_stop_tt_index_last) = ! ||
+                {if}
+                    l1 (S.L.ai_current_stop_tt_index_last)
+                    (L.L.ai_previous_stop_tt_index) (S.L.ai_previous_stop_tt_index_last)
+                    (L.L.ai_next_stop_tt_index) (S.L.ai_next_stop_tt_index_last)
+                    l2
+                    {if}
+                        
+                    {endif}
+                {endif}
+                0 s2
+                (M.V.GetTTLineString) $RemoveSpaces (S.$._sr0) (L.$.ai_current_line) (S.$._sr1) $= ! s2 (L.$._sr1) (L.$.ai_current_line_last) $= ! ||
+                {if}
+                    (L.$._sr1) (S.$.ai_current_line_last)
+                    l2
+                    {if}
+                        (L.$._sr0) (S.$.ai_current_line)
+                    {endif}
+                {endif}
+            {endif}
+            0 s2
+            (M.V.GetTTTerminusIndex) s0 (L.L.ai_virtual_terminus_stop_index) s1 = ! s2 l1 (L.L.ai_virtual_terminus_stop_index_last) = ! ||
+            {if}
+                l1 (S.L.ai_virtual_terminus_stop_index_last)
+                (L.$.ai_virtual_terminus_stop_name) (S.$.ai_virtual_terminus_stop_name_last)
+                l2
+                {if}
+                    l0 (S.L.ai_virtual_terminus_stop_index) 0 (M.V.GetTerminusString) $RemoveSpaces (S.$.ai_virtual_terminus_stop_name)
+                {endif}
+            {endif}
+            0 s2
+            (L.L.AI_Scheduled_AtStation) s0 (L.L.ai_scheduled_at_station) s1 = ! s2 l1 (L.L.ai_scheduled_at_station_last) = ! ||
+            {if}
+                l1 (S.L.ai_scheduled_at_station_last)
+                l2
+                {if}
+                    l0 (S.L.ai_scheduled_at_station)
+                {endif}
+            {endif}
+            (M.L.ai_is_on_service_trip)
+        {endif}
+    {endif}
+{end}
+
+{macro:ai_is_on_service_trip}
+    (L.L.ai_schedule_active)
+    {if}
+        (L.L.ai_stop_count) 1 <= (L.$.ai_virtual_terminus_stop_name) (S.$._sr0) "" $= || (L.$._sr0) "Betribsfahrt" $= || (L.$._sr0)
+            "BETRIEBSFAHRT" $= || (L.$._sr0) "Dienstfahrt" $= || (L.$._sr0) "DIENSTFAHRT" $= || (L.$._sr0) "Sonderfahrt" $= ||
+            (L.$._sr0) "SONDERFAHRT" $= || (L.$._sr0) "Pause" $= || (L.$._sr0) "PAUSE" $= || s0
+    {else}
+        1 s0
+    {endif}
+    0 s2
+    (L.L.ai_on_service_trip) s1 l0 = ! s2 l1 (L.L.ai_on_service_trip_last) = ! ||
+    {if}
+        l1 (S.L.ai_on_service_trip_last)
+        l2
+        {if}
+            l0 (S.L.ai_on_service_trip)
+        {endif}
+    {endif}
+{end}

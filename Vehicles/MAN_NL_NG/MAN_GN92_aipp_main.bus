@@ -87,8 +87,7 @@ model\passengercabin_GN92_aipp_main.cfg
 	////////////////////////////////////////////////////////
 
 [varnamelist]
-25
-script\aipp\ai_varlist_aipp.txt
+30
 script\aipp\collision_varlist_aipp.txt
 script\aipp\antrieb_varlist_aipp.txt
 script\aipp\engine_varlist_aipp.txt
@@ -96,6 +95,7 @@ script\aipp\elec_varlist_aipp.txt
 script\aipp\bremse_varlist_gn92_aipp.txt
 script\aipp\auspuff_varlist_aipp.txt
 script\aipp\lights_varlist_aipp.txt
+script\aipp\lights_aipp_map_delegate_varlist.txt
 script\aipp\door_varlist_aipp.txt
 script\aipp\wiper_varlist_aipp.txt
 script\aipp\cockpit_varlist_aipp.txt
@@ -112,19 +112,27 @@ script\aipp\ticketprinter_varlist_aipp.txt
 script\aipp\articulation_varlist_aipp.txt
 script\aipp\ramplift_varlist_aipp.txt
 script\aipp\spray_varlist_aipp.txt
+script\aipp\tt_vars_aipp.txt
+script\aipp\env_vars_aipp.txt
+script\aipp\temporal_vars_aipp.txt
+script\aipp\map_vars_aipp.txt
+script\aipp\input_vars_aipp.txt
 ..\..\Scripts\up-utils\up-utils_vars.txt
 
 [stringvarnamelist]
-5
-script\aipp\ai_stringvarlist_aipp.txt
+7
 script\aipp\ibis_stringvarlist_aipp.txt
 script\aipp\vmatrix_stringvarlist_aipp.txt
 script\aipp\ticketprinter_stringvarlist_aipp.txt
+script\aipp\door_stringvars_aipp.txt
 script\aipp\cockpit_stringvarlist_aipp.txt
+script\aipp\tt_stringvars_aipp.txt
+..\..\Scripts\up-utils\up-utils_stringvars.txt
 
 [script]
-26
+34
 script\aipp\man_gn92_main_aipp.osc
+script\aipp\main_aipp.osc
 script\aipp\collision_aipp.osc
 script\aipp\antrieb_d854_gn_aipp.osc
 script\aipp\engine_gn_aipp.osc
@@ -132,6 +140,7 @@ script\aipp\elec_aipp.osc
 script\aipp\bremse_gn92_aipp.osc
 script\aipp\auspuff_aipp.osc
 script\aipp\lights_aipp.osc
+script\aipp\lights_aipp_map_delegate.osc
 script\aipp\door_aipp_auto.osc
 script\aipp\cockpit_aipp.osc
 script\aipp\wiper_aipp.osc
@@ -149,11 +158,16 @@ script\aipp\ticketprinter_aipp.osc
 script\aipp\articulation_aipp.osc
 script\aipp\ramplift_aipp.osc
 script\aipp\spray_aipp.osc
+script\aipp\tt_aipp.osc
+script\aipp\env_aipp.osc
+script\aipp\temporal_aipp.osc
+script\aipp\map_aipp.osc
+script\aipp\input_aipp.osc
+script\aipp\debug_aipp.osc
 ..\..\Scripts\up-utils\up-utils.osc
 
 [constfile]
-19
-script\aipp\ai_constfile_aipp.txt
+20
 script\aipp\collision_constfile_aipp.txt
 script\aipp\antrieb_constfile_gn92_aipp.txt
 script\aipp\engine_constfile_gn92_aipp.txt
@@ -172,6 +186,8 @@ script\aipp\ibis_constfile_aipp.txt
 script\aipp\vmatrix_constfile_aipp.txt
 script\aipp\articulation_constfile_aipp.txt
 script\aipp\ramplift_constfile_aipp.txt
+script\aipp\env_consts_aipp.txt
+..\..\Scripts\up-utils\up-utils_consts.txt
 
 	////////////////////////////////////////////////////////
 		Kameras *NEU01*

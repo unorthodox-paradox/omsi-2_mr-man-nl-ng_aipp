@@ -108,13 +108,10 @@
             {if}
                 (L.L.ai_ext_stop_wiper_reenabling_time_alt) -1 =
                 {if}
-                    (L.S.Time) (L.L.ai_ext_stop_wiper_reenabling_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                        max s2 + (S.L.ai_ext_stop_wiper_reenabling_time_alt) (C.L.secs_per_day) >=
-                    {if}
-                        (C.L.secs_per_day) (L.S.Time) - l2 + (S.L.ai_ext_stop_wiper_reenabling_time_alt)
-                    {endif}
+                    (L.S.GetTime) (L.L.ai_ext_stop_wiper_reenabling_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
+                        max s2 + (S.L.ai_ext_stop_wiper_reenabling_time_alt)
                 {endif}
-                (L.S.Time) (L.L.ai_ext_stop_wiper_reenabling_time_alt) <= s2
+                (L.S.GetTime) (L.L.ai_ext_stop_wiper_reenabling_time_alt) <= s2
             {else}
                 0 s2
             {endif}

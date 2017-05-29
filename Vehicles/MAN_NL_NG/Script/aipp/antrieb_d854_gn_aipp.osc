@@ -36,10 +36,8 @@
 '----------------------
 
 {macro:antrieb_init}
-	1 (S.L.antrieb_getr_gangwahl) (S.L.antrieb_getr_gangvorwahl)
-	1 (S.L.antrieb_getr_aktugang)
-	
-	0 (S.L.antrieb_wandler_moment)
+    4 (S.L.antrieb_getr_gangvorwahl)
+    1 (S.L.antrieb_getr_gangwahl) (S.L.antrieb_getr_aktugang)
 {end}
 
 '----------------------
@@ -532,7 +530,7 @@
 	(L.L.antrieb_n_kardanwelle) (C.L.antrieb_neutral_maxspeed) <
 	(L.L.antrieb_getr_gangwahl) 1 > &&
 	(L.L.antrieb_retarder) ! &&
-	(L.L.antrieb_retarder_wasrunning) ! &&	
+	(L.L.antrieb_retarder_wasrunning) ! &&
 	{if}
 		(L.L.bremse_p_Brzyl_HA) (C.L.antrieb_neutral_brakepressure) >
 		{if}

@@ -1,0 +1,5 @@
+_game_time
+_timegap
+ai_game_time_last
+ai_game_time_paused_last
+ai_timegap

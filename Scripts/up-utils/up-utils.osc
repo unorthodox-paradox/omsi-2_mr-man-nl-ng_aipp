@@ -1,0 +1,20 @@
+{macro:from_r10_to_r11_at_r12_linear}
+    (L.L._r10) (L.L._r11) = !
+    {if}
+        (L.L._r11) (L.L._r10) - sgn (S.L._r13) (L.L._r12) (L.S.Timegap) * * (L.L._r10) + (S.L._r10) (L.L._r11) >=
+            (L.L._r13) 1 = && (L.L._r10) (L.L._r11) <= (L.L._r13) -1 = && ||
+        {if}
+            (L.L._r11) (S.L._r10)
+        {endif}
+    {endif}
+{end}
+
+{macro:calc_time_diff}
+    (L.L._r10) (L.L._r11) <=
+    {if}
+        (L.L._r11) (L.L._r10) -
+    {else}
+        (C.L.secs_per_day) (L.L._r10) - (L.L._r11) +
+    {endif}
+    (S.L._r12)
+{end}

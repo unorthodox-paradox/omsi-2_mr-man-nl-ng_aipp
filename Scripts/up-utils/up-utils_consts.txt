@@ -1,0 +1,11 @@
+[const]
+secs_per_min
+60
+
+[const]
+secs_per_hour
+3600
+
+[const]
+secs_per_day
+86400

@@ -1,0 +1,14 @@
+{macro:lights_init__map_delegate}
+{end}
+
+{macro:lights_frame_pre__map_delegate}
+{end}
+
+{macro:is_sufficiently_dark__map_delegate}
+{end}
+
+{macro:is_sufficiently_dark_interior__map_delegate}
+{end}
+
+{macro:lights_frame_post__map_delegate}
+{end}

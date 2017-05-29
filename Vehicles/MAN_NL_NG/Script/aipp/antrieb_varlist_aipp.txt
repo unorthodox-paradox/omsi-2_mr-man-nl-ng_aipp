@@ -18,9 +18,6 @@ antrieb_gear_engaged_timer
 antrieb_neutral_requested
 antrieb_getr_reverse
 
-
-
-
 antrieb_wendesatz
 antrieb_retarder
 antrieb_retarder_armed
@@ -42,7 +39,6 @@ antrieb_throttle_stellglied
 antrieb_beschleunigung
 antrieb_last_geschwindigkeit
 
-
 antrieb_test
 
 antrieb_wegstrecke
@@ -54,3 +50,5 @@ antrieb_n_differenz
 antrieb_rucksoundvol
 
 antrieb_failure_general
+
+AI_antrieb_acturatio

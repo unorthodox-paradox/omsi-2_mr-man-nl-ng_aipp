@@ -1,0 +1,21 @@
+{macro:input_frame}
+    (M.L.ai_throttle_brake_steering_frame)
+{end}
+
+{macro:ai_throttle_brake_steering_frame}
+    (L.L.AI)
+    {if}
+        (L.L.bremse_halte) (L.L.bremse_feststell) ||
+        {if}
+            0 (S.L.ai_throttle) (S.L.ai_brake)
+        {else}
+            (L.L.throttle) (S.L.ai_throttle)
+            (L.L.brake) (S.L.ai_brake)
+        {endif}
+        (L.L.Axle_Steering_0_L) (S.L.ai_axle_steering_0_l)
+        (L.L.Axle_Steering_0_R) (S.L.ai_axle_steering_0_r)
+    {else}
+        0 (S.L.ai_throttle)
+        0.3 (S.L.ai_brake)
+    {endif}
+{end}
