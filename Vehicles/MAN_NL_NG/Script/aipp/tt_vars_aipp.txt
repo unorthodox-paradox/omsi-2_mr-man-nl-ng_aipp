@@ -26,3 +26,5 @@ ai_on_service_trip
 ai_on_service_trip_last
 ai_tt_initialized
 ai_tt_first_frame
+tt_transition_occurred
+tt_transition_anomalous

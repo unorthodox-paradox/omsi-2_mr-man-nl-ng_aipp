@@ -1,5 +1,16 @@
 {macro:tt_frame}
     (M.L.ai_aqcuire_tt_info)
+    (L.L.ai_tt_initialized)
+    {if}
+        (M.L.ai_detect_tt_transition)
+        (M.L.ai_detect_anomalous_tt_transition)
+        (L.L.ai_tt_first_frame)
+        {if}
+            0 (S.L.ai_tt_first_frame)
+        {endif}
+    {else}
+        1 (S.L.ai_tt_initialized) (S.L.ai_tt_first_frame)
+    {endif}
 {end}
 
 {macro:ai_aqcuire_tt_info}
@@ -37,12 +48,7 @@
                 (S.$.ai_virtual_terminus_stop_name) (S.$.ai_virtual_terminus_stop_name_last)
             (L.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station) (S.L.ai_scheduled_at_station_last)
             (M.L.ai_is_on_service_trip) (L.L.ai_on_service_trip) (S.L.ai_on_service_trip_last)
-            1 (S.L.ai_tt_initialized) (S.L.ai_tt_first_frame)
         {else}
-            (L.L.ai_tt_first_frame)
-            {if}
-                0 (S.L.ai_tt_first_frame)
-            {endif}
             (L.L.schedule_active) s0 (L.L.ai_schedule_active) s1 = !
             {if}
                 l1 (S.L.ai_schedule_active_last)
@@ -200,4 +206,15 @@
             l0 (S.L.ai_on_service_trip)
         {endif}
     {endif}
+{end}
+
+{macro:ai_detect_tt_transition}
+    (L.L.ai_current_stop_index) (L.L.ai_current_stop_index_last) = ! (L.L.ai_current_stop_tt_index) (L.L.ai_current_stop_tt_index_last) = ! ||
+        (L.$.ai_current_line) (L.$.ai_current_line) $= ! || (L.L.ai_terminus_stop_index) (L.L.ai_terminus_stop_index_last) = ! ||
+        (L.L.ai_virtual_terminus_stop_index) (L.L.ai_virtual_terminus_stop_index_last) = ! || (L.L.ai_scheduled_at_station) (L.L.ai_scheduled_at_station_last) = ! ||
+        (S.L.tt_transition_occurred)
+{end}
+
+{macro:ai_detect_anomalous_tt_transition}
+    (L.L.temporal_transition_anomalous) (L.L.tt_transition_occurred) && (S.L.tt_transition_anomalous)
 {end}

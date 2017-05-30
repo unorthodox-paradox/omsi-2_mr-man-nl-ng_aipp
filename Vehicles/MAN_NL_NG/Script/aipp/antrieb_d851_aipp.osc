@@ -363,8 +363,6 @@
 					{else}
 						(L.L.antrieb_schaltmoment) /-/ (S.L.antrieb_getr_M_an) (L.L.antrieb_getr_ratio) * (C.L.gear_efficiency) * (S.L.M_Wheel)
 					{endif}
-					
-
 
 				{endif}
 
@@ -375,16 +373,9 @@
 
 	{endif}
 
-
-
-
-
-
-
 '#################################################################################
 '	Retarder
 '#################################################################################
-
 
 	(L.L.ai_brake) 0.01 >
 	(L.L.antrieb_retarder_sw) &&
