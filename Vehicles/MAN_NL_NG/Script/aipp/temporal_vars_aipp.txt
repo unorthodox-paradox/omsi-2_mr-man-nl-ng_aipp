@@ -1,5 +1,12 @@
 _game_time
+_time
 _timegap
 ai_game_time_last
 ai_game_time_paused_last
+ai_time_last
+ai_time_diff
 ai_timegap
+
+vehicle_was_hibernated
+user_modified_time
+temporal_transition_anomalous
