@@ -719,14 +719,6 @@
 
     (L.L.AI)
     {if}
-    
-'        (L.L.AI_Scheduled_AtStation) (S.L.Debug_0)
-'        (L.L.ai_departure_lookahead) (S.L.Debug_1)
-'        (L.L.ai_current_stop_tt_index) (S.L.Debug_2)
-'        (L.L.ai_estimated_stop_duration) (S.L.Debug_3)
-'        (L.L.ai_stop_timer) (S.L.Debug_4)
-'        (L.L.door_AI_timer) (S.L.Debug_5)
-
         (L.L.AI_Scheduled_AtStation) (S.L._r8) (L.L.ai_departure_lookahead) ||
         {if}
             (L.L.ai_unscheduled_stop_initialized)
