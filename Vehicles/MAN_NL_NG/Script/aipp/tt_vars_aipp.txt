@@ -24,6 +24,8 @@ ai_scheduled_at_station
 ai_scheduled_at_station_last
 ai_on_service_trip
 ai_on_service_trip_last
+ai_trip_duration
+ai_trip_duration_last
 ai_tt_initialized
 ai_tt_first_frame
 tt_transition_occurred

@@ -273,9 +273,31 @@ engine_cvm_engine
 engine_cvm_envir
 10000
 
+[newcurve]
+engine_turbo_RPM_factor_en
+
+[pnt]
+0
+0
+
+[pnt]
+500
+0.5
+
+[pnt]
+1200
+0.7
+
+[pnt]
+1400
+1
+
+[pnt]
+2000
+1
 
 [newcurve]
-engine_turbo_RPM_factor
+engine_turbo_RPM_factor_gn
 
 [pnt]
 0
@@ -297,7 +319,6 @@ engine_turbo_RPM_factor
 2000
 1
 
-
 [newcurve]
 engine_turbo_throttle_factor
 
@@ -310,7 +331,26 @@ engine_turbo_throttle_factor
 1
 
 [newcurve]
-engine_turbo_boost
+engine_turbo_boost_en
+
+[pnt]
+0
+1
+
+[pnt]
+70
+1
+
+[pnt]
+90
+1.15
+
+[pnt]
+100
+1.2
+
+[newcurve]
+engine_turbo_boost_gn
 
 [pnt]
 0

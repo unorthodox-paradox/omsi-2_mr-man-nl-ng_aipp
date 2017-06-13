@@ -1,0 +1,3 @@
+{macro:config_init}
+    (C.L.vehicle_variant_id) 10 % 4 >= (S.L.articulated_variant)
+{end}

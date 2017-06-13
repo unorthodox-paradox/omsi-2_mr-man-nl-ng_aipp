@@ -107,6 +107,8 @@ door_20h_sw
 door_freigabe
 door_hstbremse_knickschutz
 
+ai_env_perception_initialized
+
 t1
 t2
 t3
@@ -165,11 +167,14 @@ ai_env_wetter_than_before
 ai_env_warmer_brighter_drier_than_before
 ai_at_terminus_stop
 ai_at_extended_stop
+ai_extended_stop_heuristic_timer
 ai_at_last_pre_terminus_stop
 ai_estimated_stop_duration
 ai_delayed_arrival
 ai_delayed_departure
 ai_front_door_entry_req
+ai_front_door_entry_req
+ai_back_door_exit_req
 ai_open_door_0_preconditions
 ai_open_door_1_preconditions
 ai_override_back_doors_preconditions
@@ -182,15 +187,17 @@ ai_interstop_timer
 ai_interstop_distance_tracker
 
 ai_stop_arrival_initialized
-ai_combine_stops
+ai_stop_arrival_time
+ai_departure_lookahead
 ai_stop_departure_initialized
+ai_quick_departure
 ai_interstop_initialized
 
 ai_terminus_stop_delayed_entry_req_departure_delay
 
 ai_stop_brake_setting_delay
 
-ai_front_door_entry_req_trigered_opening_delay
+ai_front_door_entry_req_triggered_opening_delay
 ai_front_door_static_actualization_delay
 ai_front_door_first_to_second_wing_opening_interval
 ai_front_door_first_to_second_wing_closing_interval
@@ -220,7 +227,7 @@ ai_open_front_door_prolonged_terminus_stop_hot_dry_day
 
 ai_open_front_door_normal_terminus_stop_warm_dry
 ai_open_front_door_normal_terminus_stop_warm_dry_night
- 
+
 ai_open_front_door_last_pre_terminus_stop_ideal
 ai_open_front_door_last_pre_terminus_stop_warm
 
@@ -235,13 +242,13 @@ ai_override_back_doors_ext_stop_warm_dry
 ai_override_back_doors_ext_stop_hot_dry
 
 ai_stop_brake_last_op
-ai_stop_brake_last_trigered
+ai_stop_brake_last_triggered
 ai_door_0_last_op
-ai_door_0_last_trigered
+ai_door_0_last_triggered
 ai_door_1_last_op
-ai_door_1_last_trigered
+ai_door_1_last_triggered
 ai_door_23_last_op
-ai_door_23_last_trigered
+ai_door_23_last_triggered
 
 ai_depart_with_front_door_open
 ai_arrived_with_front_door_open
