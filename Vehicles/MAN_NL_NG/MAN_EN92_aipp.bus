@@ -88,7 +88,7 @@ model\passengercabin_EN92_aipp.cfg
 
 [varnamelist]
 30
-script\aipp\collision_varlist_aipp.txt
+script\aipp\cfg_vars_aipp.txt
 script\aipp\antrieb_varlist_aipp.txt
 script\aipp\engine_varlist_aipp.txt
 script\aipp\elec_varlist_aipp.txt
@@ -133,7 +133,7 @@ script\aipp\tt_stringvars_aipp.txt
 34
 script\aipp\man_en92_main_aipp.osc
 script\aipp\main_aipp.osc
-script\aipp\collision_aipp.osc
+script\aipp\cfg_aipp.osc
 script\aipp\antrieb_d851_aipp.osc
 script\aipp\engine_aipp.osc
 script\aipp\elec_aipp.osc
@@ -168,9 +168,9 @@ script\aipp\debug_aipp.osc
 
 [constfile]
 20
-script\aipp\collision_constfile_aipp.txt
+script\aipp\main_consts_en92_aipp.txt
 script\aipp\antrieb_constfile_en92_aipp.txt
-script\aipp\engine_constfile_en92_aipp.txt
+script\aipp\engine_constfile_aipp.txt
 script\aipp\elec_constfile_aipp.txt
 script\aipp\bremse_constfile_aipp.txt
 script\aipp\lights_constfile_aipp.txt

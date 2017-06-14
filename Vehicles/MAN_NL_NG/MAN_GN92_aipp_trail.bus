@@ -41,7 +41,7 @@ model\passengercabin_GN92_aipp_trail.cfg
 
 [varnamelist]
 30
-script\aipp\collision_varlist_aipp.txt
+script\aipp\cfg_vars_aipp.txt
 script\aipp\antrieb_varlist_aipp.txt
 script\aipp\engine_varlist_aipp.txt
 script\aipp\elec_varlist_aipp.txt

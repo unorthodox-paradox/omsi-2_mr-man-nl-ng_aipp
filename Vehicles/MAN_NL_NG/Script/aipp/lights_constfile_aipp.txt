@@ -22,26 +22,9 @@ lights_brems_haltestellenbremse
 door_entryLightsOnlyIfStandLight
 1
 
-
-[const]
-lights_bulb_frontlight_livetime_h
-2000
-
-[const]
-lights_bulb_signal_livetime_h
-1000
-
-[const]
-lights_bulb_inside_livetime_h
-2000
-
 [const]
 lights_blinker_bulb_cnt
 5
-
-[const]
-lights_edge_avl
-1
 
 Neu: Pro Glühbirne
 =============================================
@@ -77,18 +60,25 @@ Fahrerlicht: 10W (1x0.0174 1/Ohm)
 lights_fahrerlicht_Rinv_bulb
 0.0174
 
+[const]
+lights_door_Rinv_bulb
+0.00868
+
 .............................
 
 Alt: Für ganze Beleuchtungsgruppen
 =============================================
 Inverse Widerstände (Leitwerte) in 1/Ohm.
 
-
 Rücklicht: 2x10W (2x0.0174 1/Ohm)
 
 [const]
 lights_rueck_Rinv
 0.0347
+
+[const]
+lights_standstill_rear_Rinv_bulb
+0.0174
 
 .............................
 
@@ -97,10 +87,21 @@ zwei Standlichter: 2x10W (2x0.0174 1/Ohm)
 zwei Kennzeichenlichter: 2x5W (2x0.00868 1/Ohm)
 vier Rollbandbeleuchtung: 4x40W (4x0.0694 1/Ohm)
 
-
 [const]
 lights_stand_Rinv
 0.330
+
+[const]
+lights_standstill_front_Rinv_bulb
+0.0174
+
+[const]
+lights_license_plate_Rinv_bulb
+0.00868
+
+[const]
+lights_matrix_Rinv_tube
+0.0694
 
 .............................
 
@@ -109,6 +110,10 @@ Bremslicht: 2x20W (2x0.0347 1/Ohm)
 [const]
 lights_brems_Rinv
 0.0694
+
+[const]
+lights_brake_Rinv_bulb
+0.0347
 
 .............................
 
@@ -141,6 +146,10 @@ Beleuchtung Unterdeck: 3x40W (3x0.0694 1/Ohm)
 lights_beleuchtung_unterdeck_Rinv
 0.208
 
+[const]
+lights_passenger_Rinv_tube
+0.0694
+
 .............................
 
 Beleuchtung Unterdeck vornerechts: 1x40W (3x0.0694 1/Ohm)
@@ -149,13 +158,11 @@ Beleuchtung Unterdeck vornerechts: 1x40W (3x0.0694 1/Ohm)
 lights_beleuchtung_untenrechts_Rinv
 0.0694
 
+.............................
+
 [const]
 AI_lights_blinkgeberintervall
 0.3
-
-[const]
-ai_lighting_is_omsi_controlled
-0
 
 [const]
 ai_lighting_profile_1_chance
@@ -296,4 +303,3 @@ ai_lighting_actualization_margin_granularity
 [const]
 ai_lighting_midday
 12
-

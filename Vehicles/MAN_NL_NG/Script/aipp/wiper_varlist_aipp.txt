@@ -20,6 +20,8 @@ wiper_angle_x_arm
 wiper_angle_x_blatt
 wiper_angle_z_blatt
 
+ai_wiper_initialized
+
 ai_wiper_int_precip_min
 ai_wiper_cont_precip_min
 ai_wiper_fast_precip_min
@@ -34,6 +36,7 @@ ai_wiper_manual_int_timer
 ai_wiper_target
 
 ai_ext_stop_disable_wipers
+ai_ext_stop_disabled_wipers
 ai_ext_stop_wiper_disabling_delay
 ai_ext_stop_wiper_reenabling_delay
 ai_ext_stop_wiper_reenabling_delay_alt

@@ -54,21 +54,6 @@
 	(M.L.lights_calc_geberfaktor)
 	(M.L.lights_runblinkgeber)
 
-
-'In HH kein Bremslicht bei aktiver Haltestellenbremse
-    (L.L.ai_brake) 0.1 > (L.L.bremse_halte) (C.L.lights_brems_haltestellenbremse) && || (L.L.elec_busbar_main) sqr *
-        (S.L.lights_brems)
-		
-
-	(L.L.antrieb_getr_gangwahl) 0 = (L.L.elec_busbar_main) sqr *
-		(S.L.lights_rueckfahr)
-
-	(L.L.lights_sw_blinker) 1 = (L.L.lights_sw_warnblinker) || (L.L.lights_blinkgeber) && (L.L.elec_busbar_avail) sqr *
-		(S.L.lights_blinker_l)
-
-	(L.L.lights_sw_blinker) 2 = (L.L.lights_sw_warnblinker) || (L.L.lights_blinkgeber) && (L.L.elec_busbar_avail) sqr *
-		(S.L.lights_blinker_r)
-
 'MCQ: AI-Blinkererkennung:
 	(L.L.AI) !
 	{if}
@@ -101,17 +86,15 @@
 	{endif}
 
 'Automatische Blinkerabschaltung:
-
+    0 s0
 	(L.L.Axle_Steering_0_L) (C.L.lights_blinkautom_minLenk) > (L.L.lights_sw_blinker) 2 = &&
 	{if}
 		1 (S.L.lights_blinkautom_r_armed)
 	{else}
 		(L.L.lights_blinkautom_r_armed)
 		{if}
-			(T.L.ev_lights_blinker_swoff)
-			0
-				(S.L.lights_sw_blinker) (S.L.lights_blinkgeber)
-				(S.L.lights_blinkautom_r_armed)
+            0 (S.L.lights_blinkautom_r_armed)
+            1 s0
 		{endif}
 	{endif}
 
@@ -121,37 +104,42 @@
 	{else}
 		(L.L.lights_blinkautom_l_armed)
 		{if}
-			(T.L.ev_lights_blinker_swoff)
-			0
-				(S.L.lights_sw_blinker) (S.L.lights_blinkgeber)
-				(S.L.lights_blinkautom_l_armed)
+            0 (S.L.lights_blinkautom_l_armed)
+            (L.L.ai_indicator_l_override_state) 3 >=
+            {if}
+                0 (S.L.ai_indicator_l_override_state)
+            {endif}
+            1 s0
 		{endif}
 	{endif}
+    l0
+    {if}
+		(T.L.ev_lights_blinker_swoff)
+		0 (S.L.lights_sw_blinker) (S.L.lights_blinkgeber) (S.L.lights_blinkautom_r_armed)
+        (L.L.ai_forget_indicator_adjustment) -1 = !
+        {if}
+            -1 (S.L.ai_forget_indicator_adjustment)
+        {endif}
+        (L.L.ai_indicator_sw_deferred)
+        {if}
+            0 (S.L.ai_indicator_sw_deferred)
+        {endif}
+    {endif}
 
+'	Beleuchtungsfunktionen
 
-
-
-'	Beleuchtungsfunktionen 
-
-	(L.L.elec_busbar_main) 0.4 > 
+	(L.L.elec_busbar_main) 0.4 >
 	{if}
-
 
 'Lichterzustand in Abhängigkeit vom Schlüsselschalter und Batterierelais setzen:
 
-
-		(L.L.cp_taster_nebelschluss_target) (L.L.elec_busbar_main) sqr * (S.L.lights_nebelschluss)
-		(L.L.cp_licht_nebelschw_sw) (L.L.elec_busbar_main) sqr * (S.L.lights_nebelschw)
-
-		(L.L.cp_schluessel_rot) 0.2 > 
+		(L.L.cp_schluessel_rot) 0.2 >
 		{if}
-	
+
 			(L.L.elec_busbar_main) sqr
 			(S.L.lights_stand)
-			(S.L.lights_rueck)
-			1 (S.L.lights_terminus)
 
-			(L.L.cp_schluessel_rot) 0.8 > 
+			(L.L.cp_schluessel_rot) 0.8 >
 			{if}
 				(L.L.elec_busbar_main) sqr
 				(S.L.lights_abbl)
@@ -162,8 +150,6 @@
 		{else}
 			0
 			(S.L.lights_stand)
-			(S.L.lights_terminus)
-			(S.L.lights_rueck)
 			(S.L.lights_abbl)
 		{endif}
 
@@ -176,30 +162,9 @@
 		{else}
 			0 (S.L.lights_fern)
 		{endif}
-
-
-
-		
 	{else}
-		0 (S.L.lights_stand) (S.L.lights_abbl) (S.L.lights_terminus) (S.L.lights_rueck) (S.L.lights_nebelschluss) (S.L.lights_nebelschw) (S.L.lights_fern)
+		0 (S.L.lights_stand) (S.L.lights_abbl) (S.L.lights_nebelschluss) (S.L.lights_nebelschw) (S.L.lights_fern)
 	{endif}
-
-
-'Spotselect wird neu berechnet, damit Glühbirnenschäden berücksichtigt werden:
-
-	-1 s0
-	(L.L.lights_fern) 0.5 >	
-	{if}
-		0 s0
-	{else}
-		(L.L.lights_abbl_bulb_1) 0.5 > (L.L.lights_abbl_bulb_2) 0.5 > ||
-		{if}
-			1 s0
-		{endif}
-	{endif}
-	l0 (S.L.Spot_Select)
-			
-
 
 	(L.L.elec_busbar_avail)
 	{if}
@@ -210,7 +175,7 @@
 		(L.L.cp_licht_untenrechts_sw) (S.L.lights_beleuchtung_untenrechts)
 
 '		Wechselschaltung Beleuchtung Unterdeck OHNE unten rechts:
-		(L.L.lights_beleuchtung_untenrechts) ! (L.L.lights_beleuchtung_unterdeck) && (S.L.lights_beleuchtung_unterdeck_ohnevornerechts) 
+		(L.L.lights_beleuchtung_untenrechts) ! (L.L.lights_beleuchtung_unterdeck) && (S.L.lights_beleuchtung_unterdeck_ohnevornerechts)
 
 '		Fahrerlicht und Türleuchten
 
@@ -231,423 +196,735 @@
 		(S.L.lights_beleuchtung_unterdeck) (S.L.lights_beleuchtung_untenrechts) (S.L.lights_beleuchtung_unterdeck_ohnevornerechts)
 	{endif}
 
-	(M.L.lights_bulbcalc)
+    (M.L.lights_bulbcalc)
+
+'Spotselect wird neu berechnet, damit Glühbirnenschäden berücksichtigt werden:
+	-1 s0
+	(L.L.lights_fern) 0.5 >	
+	{if}
+		0 s0
+	{else}
+		(L.L.lights_head_l_on) 0.5 > (L.L.lights_head_r_on) 0.5 > ||
+		{if}
+			1 s0
+		{endif}
+	{endif}
+	l0 (S.L.Spot_Select)
 
 'Leitwert generieren:
-
 	(L.L.elec_busbar_Rinv_summe)
-		(L.L.lights_rueck) 0 > (C.L.lights_rueck_Rinv) * +
-		(L.L.lights_stand) 0 > (C.L.lights_stand_Rinv) * +
-		(L.L.lights_brems) 0 > (C.L.lights_brems_Rinv) * +
+		(L.L.lights_marker_l_1_on) 0 > (C.L.lights_edge_Rinv_bulb) * +
+        (L.L.lights_marker_r_1_on) 0 > (C.L.lights_edge_Rinv_bulb) * +
+        (L.L.lights_marker_l_2_on) 0 > (C.L.lights_edge_Rinv_bulb) * +
+        (L.L.lights_marker_r_2_on) 0 > (C.L.lights_edge_Rinv_bulb) * +
+
+        (L.L.lights_standstill_l_1_on) 0 > (C.L.lights_standstill_front_Rinv_bulb) * +
+        (L.L.lights_standstill_r_1_on) 0 > (C.L.lights_standstill_front_Rinv_bulb) * +
+        (L.L.lights_standstill_l_2_on) 0 > (C.L.lights_standstill_rear_Rinv_bulb) * +
+        (L.L.lights_standstill_r_2_on) 0 > (C.L.lights_standstill_rear_Rinv_bulb) * +
+
+        (L.L.lights_license_plate_l_on) 0 > (C.L.lights_license_plate_Rinv_bulb) * +
+        (L.L.lights_license_plate_r_on) 0 > (C.L.lights_license_plate_Rinv_bulb) * +
+
+        (L.L.lights_matrix_1_on) 0 > 2 * (C.L.lights_matrix_Rinv_tube) * +
+        (L.L.lights_matrix_2_on) 0 > (C.L.lights_matrix_Rinv_tube) * +
+        (L.L.lights_matrix_3_on) 0 > (C.L.lights_matrix_Rinv_tube) * +
+
+        (L.L.lights_head_l_on) 0 > (C.L.lights_abbl_Rinv_bulb) * +
+        (L.L.lights_head_r_on) 0 > (C.L.lights_abbl_Rinv_bulb) * +
+
+		(L.L.lights_fern) 0 > (C.L.lights_fern_Rinv) * +
+
 		(L.L.lights_rueckfahr) 0 > (C.L.lights_rueckfahr_Rinv) * +
 		(L.L.lights_nebelschw) 0 > (C.L.lights_nebelschw_Rinv) * +
-		(L.L.lights_fern) 0 > (C.L.lights_fern_Rinv) * +
-		(L.L.lights_beleuchtung_unterdeck) 0 > (C.L.lights_beleuchtung_unterdeck_Rinv) * +
-		(L.L.lights_beleuchtung_untenrechts) 0 > (C.L.lights_beleuchtung_untenrechts_Rinv) * +
 
+        (L.L.lights_brake_l_on) 0 > (C.L.lights_brake_Rinv_bulb) * +
+        (L.L.lights_brake_r_on) 0 > (C.L.lights_brake_Rinv_bulb) * +
 
-		(L.L.lights_abbl_bulb_1) 0 > (C.L.lights_abbl_Rinv_bulb) * +
-		(L.L.lights_abbl_bulb_2) 0 > (C.L.lights_abbl_Rinv_bulb) * +
-		(L.L.lights_blinker_l_bulb_1) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_l_bulb_2) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_l_bulb_3) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_l_bulb_4) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_l_bulb_5) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_r_bulb_1) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_r_bulb_2) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_r_bulb_3) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_r_bulb_4) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_blinker_r_bulb_5) 0 > (C.L.lights_blinker_Rinv_bulb) * +
-		(L.L.lights_fahrerlicht_bulb) 0 > (C.L.lights_fahrerlicht_Rinv_bulb) * +
-		(L.L.lights_edge_front_bulb_l) 0 > (C.L.lights_edge_Rinv_bulb) * +
-		(L.L.lights_edge_front_bulb_r) 0 > (C.L.lights_edge_Rinv_bulb) * +
-	(S.L.elec_busbar_Rinv_summe)
+        (L.L.lights_driver_on) 0 > (C.L.lights_fahrerlicht_Rinv_bulb) * +
 
+		(L.L.lights_passenger_1_on) 0 > (C.L.lights_passenger_Rinv_tube) * +
+		(L.L.lights_passenger_2_on) 0 > (C.L.lights_passenger_Rinv_tube) * +
+		(L.L.lights_passenger_3_on) 0 > (C.L.lights_passenger_Rinv_tube) * +
+		(L.L.lights_passenger_4_on) 0 > (C.L.lights_passenger_Rinv_tube) * +
+		(L.L.lights_passenger_5_on) 0 > (C.L.lights_passenger_Rinv_tube) * +
+
+        (L.L.lights_door_1_on) 0 > (C.L.lights_door_Rinv_bulb) * +
+        (L.L.lights_door_2_on) 0 > (C.L.lights_door_Rinv_bulb) * +
+        (L.L.lights_door_3_on) 0 > (C.L.lights_door_Rinv_bulb) * +
+
+		(L.L.lights_indicator_l_1_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_r_1_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_l_2_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_r_1_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_l_3_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_r_3_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_l_4_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_r_4_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_l_5_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+		(L.L.lights_indicator_r_5_on) 0 > (C.L.lights_blinker_Rinv_bulb) * +
+
+        (S.L.elec_busbar_Rinv_summe)
 {end}
 
 {macro:lights_AI}
     (M.L.lights_frame_pre__map_delegate)
-'AI-Einfluss auf Beleuchtung:
+
 	(L.L.AI)
 	{if}
-        (L.L.AI_Blinker_L) s0 (L.L.AI_Blinker_R) s1 &&
+        (L.L.ai_ext_stop_disabled_indicators) s2
+        (L.L.AI_Scheduled_AtStation) s4 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_disable_indicators) && (L.L.ai_stop_timer)
+            (L.L.ai_ext_stop_indicator_off_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration)
+            (L.L.ai_ext_stop_indicator_on_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max (L.L.ai_ext_stop_engine_on_actual_delay) 0.8 +
+            (L.L.ai_ext_stop_turn_engine_off) * max s5 < && s3 l2 ! &&
         {if}
-			1 (S.L.lights_sw_warnblinker)
-            (M.L.lights_startblinkgeber)
+            1 s2
         {else}
-            0 (S.L.lights_sw_warnblinker)
-            (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_disable_indicators) && (L.L.ai_stop_timer)
-                (L.L.ai_ext_stop_indicator_off_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer)
-                (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_indicator_on_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max
-                (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s2 !
+            l3 ! l2 && l4 ! && (L.L.ai_departure_lookahead) &&
             {if}
-                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_disable_indicators) && (L.L.ai_indicator_l_on) (L.L.ai_indicator_r_on) || &&
-                    (L.L.lights_sw_blinker) ! &&
+                (L.L.ai_quick_departure) (L.L.ai_ext_stop_indicator_on_time_alt) -1 = &&
                 {if}
-                    (L.L.ai_ext_stop_indicator_on_time_alt) -1 =
-                    {if}
-                        (L.S.GetTime) (L.L.ai_ext_stop_indicator_on_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                            max s3 + (S.L.ai_ext_stop_indicator_on_time_alt)
-                    {endif}
-                    (L.S.GetTime) (L.L.ai_ext_stop_indicator_on_time_alt) <= s3
-                {else}
-                    0 s3
+                    (L.L._game_time) (L.L.ai_ext_stop_indicator_on_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.8 + (L.L.ai_ext_stop_turn_engine_off) *
+                        max + (S.L.ai_ext_stop_indicator_on_time_alt)
                 {endif}
-            {else}
-                0 s3
-            {endif}
-            l0
-            {if}
-                (L.L.ai_indicator_l_usage_initialized) !
+                (L.L.ai_stop_timer) l5 >= (L.L.ai_ext_stop_indicator_on_time_alt) s5 -1 = ! (L.L._game_time) l5 >= && ||
                 {if}
-                    1 (S.L.ai_indicator_l_usage_initialized)
-                    20 random 0 = ! (S.L.ai_indicator_l_on)
-                {endif}
-                (L.L.ai_indicator_l_on) l2 ! && l3 ! && (S.L.lights_sw_blinker)
-                {if}
-                    (M.L.lights_startblinkgeber)
-                    (L.L.ai_ext_stop_indicator_on_time_alt) -1 = !
+                    0 s2
+                    l5 -1 = !
                     {if}
                         -1 (S.L.ai_ext_stop_indicator_on_time_alt)
                     {endif}
                 {endif}
-            {else}
-                0 (S.L.ai_indicator_l_usage_initialized) (S.L.ai_indicator_l_on)
-                l1
+            {endif}
+        {endif}
+        l2 (S.L.ai_ext_stop_disabled_indicators)
+
+        (L.L.AI_Blinker_L) s0 (L.L.AI_Blinker_R) s1 &&
+        {if}
+			1 (S.L.lights_sw_warnblinker)
+        {else}
+            0 (S.L.lights_sw_warnblinker)
+
+            l2 !
+            {if}
+                l4 ! (L.L.ai_departure_lookahead) ! &&
                 {if}
-                    (L.L.ai_indicator_r_usage_initialized) !
+                    (L.L.ai_indicator_l_override_state) 3 = (L.L.bremse_halte_sw) ! &&
                     {if}
-                        1 (S.L.ai_indicator_r_usage_initialized)
-                        20 random 0 = ! (S.L.ai_indicator_r_on)
+                        5 2500 random 100 / + (S.L.ai_indicator_l_overridden_until)
+                        4 (S.L.ai_indicator_l_override_state)
                     {endif}
-                    (L.L.ai_indicator_r_on) l2 ! && l3 ! && 2 * (S.L.lights_sw_blinker)
+                    (L.L.ai_indicator_l_override_state) 4 =
                     {if}
-                        (M.L.lights_startblinkgeber)
-                        (L.L.ai_ext_stop_indicator_on_time_alt) -1 = !
+                        (L.L.ai_interstop_distance_tracker) (L.L.ai_indicator_l_overridden_until) < (L.L.temporal_transition_anomalous) ! && l0 ! && l1 ! &&
                         {if}
-                            -1 (S.L.ai_ext_stop_indicator_on_time_alt)
+                            1
+                        {else}
+                            0 (S.L.ai_indicator_l_override_state)
+                        {endif}
+                    {else}
+                        (L.L.ai_indicator_l_override_state) 3 = (L.L.temporal_transition_anomalous) ! &&
+                        {if}
+                            1
+                        {else}
+                            0 (S.L.ai_indicator_l_override_state)
                         {endif}
                     {endif}
                 {else}
-                    0 (S.L.ai_indicator_r_usage_initialized) (S.L.ai_indicator_l_on) (S.L.ai_indicator_r_on) (S.L.lights_sw_blinker)
+                    l4
+                    {if}
+                        2
+                    {else}
+                        (L.L.ai_indicator_l_override_state) !
+                        {if}
+                            (L.L.ai_at_extended_stop) 2 = (L.L.ai_at_terminus_stop) ||
+                            {if}
+                                2 (S.L.ai_indicator_l_override_state)
+                            {else}
+                                (L.L._game_time) 500 random 100 / + (S.L.ai_indicator_l_overridden_until)
+                                1 (S.L.ai_indicator_l_override_state)
+                            {endif}
+                        {endif}
+                        (L.L.ai_indicator_l_override_state) 1 =
+                        {if}
+                            (L.L._game_time) (L.L.ai_indicator_l_overridden_until) >= (L.L.ai_stop_departure_initialized) 2 = ||
+                            {if}
+                                3 (S.L.ai_indicator_l_override_state)
+                            {endif}
+                        {else}
+                            (L.L.ai_indicator_l_override_state) 2 =
+                            {if}
+                                (L.L.ai_stop_departure_initialized) 2 =
+                                {if}
+                                    3 (S.L.ai_indicator_l_override_state)
+                                {endif}
+                            {endif}
+                        {endif}
+                        (L.L.ai_indicator_l_override_state) 3 =
+                        {if}
+                            1
+                        {else}
+                            2
+                        {endif}
+                    {endif}
+                {endif}
+            {else}
+                -1
+            {endif}
+            s2
+
+            l2
+            {if}
+                l2 -1 =
+                {if}
+                    0 s0 s1
+                {else}
+                    l2 1 =
+                    {if}
+                        1 s0
+                        0 s1
+                    {else}
+                        0 s0
+                        1 s1
+                    {endif}
+                {endif}
+            {endif}
+
+            l0 l1 2 * + s0
+            (L.L.lights_sw_blinker) s1
+
+            l0 l1 = !
+            {if}
+                l0 (L.L.ai_indicator_sw_deferred) = !
+                {if}
+                    (L.L.ai_forget_indicator_adjustment) -1 = !
+                    {if}
+                        -1 (S.L.ai_forget_indicator_adjustment)
+                    {endif}
+                    l0 (S.L.ai_indicator_sw_deferred)
+                {endif}
+                (L.L.ai_forget_indicator_adjustment) -1 =
+                {if}
+                    l0
+                    {if}
+                        l1
+                        {if}
+                            50
+                        {else}
+                            30
+                        {endif}
+                    {else}
+                        20
+                    {endif}
+                    random ! (S.L.ai_forget_indicator_adjustment)
+                {endif}
+                (L.L.ai_forget_indicator_adjustment) !
+                {if}
+                    l0 (S.L.lights_sw_blinker)
+                    {if}
+                        (T.L.ev_lights_blinker_swon)
+                    {else}
+                        (T.L.ev_lights_blinker_swoff)
+                    {endif}
+                    -1 (S.L.ai_forget_indicator_adjustment)
+                {endif}
+            {else}
+                (L.L.ai_forget_indicator_adjustment) -1 = !
+                {if}
+                    -1 (S.L.ai_forget_indicator_adjustment)
+                {endif}
+                l0 (L.L.ai_indicator_sw_deferred) = !
+                {if}
+                    l0 (S.L.ai_indicator_sw_deferred)
                 {endif}
             {endif}
         {endif}
 
-        (C.L.ai_lighting_is_omsi_controlled)
+        (L.L.lights_sw_blinker) (L.L.lights_sw_warnblinker) ||
         {if}
-            (L.L.AI_Light) s0 0 > * (S.L.ai_ovh_lights_on) 
+            (M.L.lights_startblinkgeber)
+        {endif}
+
+        (L.L.ai_lighting_profile) 1 = !
+        {if}
+            (L.L.ai_lighting_initialized) !
             {if}
-                l0 1 < (L.L.engine_n) 400 < ||
+                (M.L.set_lighting_regs)
+                (M.L.is_sufficiently_dark_initial_perm_on) l5
                 {if}
-                    0.5 (S.L.cp_schluessel_rot)
-                    0 (S.L.lights_sw_fern)
+                    1 (S.L.ai_ovh_lights_on)
+                    (M.L.is_sufficiently_dark_interior) l6 (S.L.ai_ovh_int_lights_on)
                 {else}
-                    l0 1.5 <
+                    (L.S.Time) trunc (C.L.secs_per_hour) / (C.L.ai_lighting_midday) < (S.L._r9)
+                    (M.L.is_sufficiently_dark_initial_temp_off) l5
                     {if}
-                        1 (S.L.cp_schluessel_rot)
-                        0 (S.L.lights_sw_fern)
+                        (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_darkness_departure_tolerance_variation)
+                            random + (S.L.ai_lighting_on_timer)
                     {else}
-                        1 (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
-                    {endif}
-                {endif}
-            {else}
-                0 (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
-            {endif}
-            (L.L.AI_Interiorlight) (S.L.ai_ovh_int_lights_on) (S.L.cp_licht_unterdeck_sw)
-            0 (S.L.cp_licht_untenrechts_sw) (S.L.cp_fahrerlicht_sw)
-        {else}
-            (L.L.ai_lighting_profile) 1 = !
-            {if}
-                (L.L.ai_lighting_initialized) !
-                {if}
-                    (M.L.set_lighting_regs)
-                    (M.L.is_sufficiently_dark_initial_perm_on) l5
-                    {if}
-                        1 (S.L.ai_ovh_lights_on)
-                        (M.L.is_sufficiently_dark_interior) l6 (S.L.ai_ovh_int_lights_on)
-                    {else}
-                        (L.S.Time) trunc (C.L.secs_per_hour) / (C.L.ai_lighting_midday) < (S.L._r9)
-                        (M.L.is_sufficiently_dark_initial_temp_off) l5
+                        (M.L.is_sufficiently_dark_initial_temp_on) l5
                         {if}
-                            (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_darkness_departure_tolerance_variation)
-                                random + (S.L.ai_lighting_on_timer)
-                        {else}
-                            (M.L.is_sufficiently_dark_initial_temp_on) l5
-                            {if}
-                                1 (S.L.ai_ovh_lights_on)
-                                (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_brightness_departure_tolerance_variation)
-                                    random + (S.L.ai_lighting_off_timer)
-                            {endif}
+                            1 (S.L.ai_ovh_lights_on)
+                            (C.L.ai_lighting_thresholds_initial_departure_tolerance) (C.L.ai_lighting_thresholds_initial_brightness_departure_tolerance_variation)
+                                random + (S.L.ai_lighting_off_timer)
                         {endif}
                     {endif}
-                    1 (S.L.ai_lighting_initialized)
-                {else}
-                    (L.L.ai_lighting_actualization_timer) s7 (L.L.ai_lighting_actualization_threshold) <
+                {endif}
+            {endif}
+
+            (L.L.ai_lighting_actualization_timer) s7 (L.L.ai_lighting_actualization_threshold) <
+            {if}
+                l7 (L.L.ai_timegap) + (L.L.ai_lighting_actualization_threshold) min (S.L.ai_lighting_actualization_timer) s7
+            {endif}
+            l7 (L.L.ai_lighting_actualization_threshold) =
+            {if}
+                0 (S.L.ai_lighting_actualization_timer)
+                l7 (L.L.ai_timegap) max (S.L._r10)
+                (M.L.set_lighting_regs)
+                (M.L.is_sufficiently_dark) l5
+                {if}
+                    (L.L.ai_ovh_lights_on) !
                     {if}
-                        l7 (L.L.ai_timegap) + (L.L.ai_lighting_actualization_threshold) min (S.L.ai_lighting_actualization_timer) s7
-                    {endif}
-                    l7 (L.L.ai_lighting_actualization_threshold) =
-                    {if}
-                        0 (S.L.ai_lighting_actualization_timer)
-                        l7 (L.L.ai_timegap) max (S.L._r10)
-                        (M.L.set_lighting_regs)
-                        (M.L.is_sufficiently_dark) l5
+                        (L.L.ai_lighting_on_timer) s7
                         {if}
-                            (L.L.ai_ovh_lights_on) !
-                            {if}
-                                (L.L.ai_lighting_on_timer) s7
-                                {if}
-                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_on_timer) s7
-                                {endif}
-                                l7 !
-                                {if}
-                                    1 (S.L.ai_ovh_lights_on)
-                                    (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
-                                {endif}
-                            {else}
-                                (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
-                            {endif}
+                            l7 (L.L._r10) - 0 max (S.L.ai_lighting_on_timer) s7
+                        {endif}
+                        l7 !
+                        {if}
+                            1 (S.L.ai_ovh_lights_on)
+                            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
+                        {endif}
+                    {else}
+                        (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
+                    {endif}
+                    (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                {else}
+                    (L.L.ai_ovh_lights_on)
+                    {if}
+                        (L.L.ai_lighting_off_timer) s7
+                        {if}
+                            l7 (L.L._r10) - 0 max (S.L.ai_lighting_off_timer) s7
+                        {endif}
+                        l7 !
+                        {if}
+                            0 (S.L.ai_ovh_lights_on)
                             (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
-                        {else}
-                            (L.L.ai_ovh_lights_on)
-                            {if}
-                                (L.L.ai_lighting_off_timer) s7
-                                {if}
-                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_off_timer) s7
-                                {endif}
-                                l7 !
-                                {if}
-                                    0 (S.L.ai_ovh_lights_on)
-                                    (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
-                                {endif}
-                            {else}
-                                (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
-                            {endif}
-                            (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer) 
                         {endif}
-                        (M.L.is_sufficiently_dark_interior) l6
-                        {if}
-                            (L.L.ai_ovh_int_lights_on) !
-                            {if}
-                                (L.L.ai_lighting_int_on_timer) s7
-                                {if}
-                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_on_timer) s7
-                                {endif}
-                                l7 !
-                                {if}
-                                    1 (S.L.ai_ovh_int_lights_on)
-                                    (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
-                                {endif}
-                            {else}
-                                (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
-                            {endif}
-                            (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
-                        {else}
-                            (L.L.ai_ovh_int_lights_on)
-                            {if}
-                                (L.L.ai_lighting_int_off_timer) s7
-                                {if}
-                                    l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_off_timer) s7
-                                {endif}
-                                l7 !
-                                {if}
-                                    0 (S.L.ai_ovh_int_lights_on)
-                                    (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
-                                {endif}
-                            {else}
-                                (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
-                            {endif}
-                            (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer) 
-                        {endif}
-                        (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
-                            (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
-                            (S.L.ai_lighting_actualization_threshold)
+                    {else}
+                        (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
                     {endif}
+                    (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
                 {endif}
-            {endif}
-            (L.L.ai_ovh_lights_on)
-            {if}                
-                (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_dim_ext_lights) && (L.L.ai_stop_timer)
-                    (L.L.ai_ext_stop_ext_light_dimming_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer)
-                    (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_ext_light_resetting_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max
-                    (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < &&
+                (M.L.is_sufficiently_dark_interior) l6
                 {if}
-                    (L.L.ai_lighting_profile) 1 = (L.L.ai_lighting_profile) 4 = ! (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 -
-                        (C.L.ai_lighting_profile_4_min_sun_elevation) max < && || 0.5 * (S.L.cp_schluessel_rot)
-                    0 (S.L.lights_sw_fern)
-                {else}
-                    (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_dim_ext_lights) && (L.L.ai_ext_stop_ext_light_resetting_time_alt) -1 = &&
-                        (L.L.cp_schluessel_rot) 1 < &&
+                    (L.L.ai_ovh_int_lights_on) !
                     {if}
-                        (L.S.GetTime) (L.L.ai_ext_stop_ext_light_resetting_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                            max s1 + (S.L.ai_ext_stop_ext_light_resetting_time_alt)
-                    {endif}
-                    (L.L.AI_Scheduled_AtStation) -1 = ! (L.S.GetTime) (L.L.ai_ext_stop_ext_light_resetting_time_alt) > ||
-                    {if}
-                        (L.L.ai_lighting_profile) 4 = (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 - > && (L.L.ai_lighting_dusk_or_dawn_standstill_only) &&
+                        (L.L.ai_lighting_int_on_timer) s7
                         {if}
-                            0.5 (S.L.cp_schluessel_rot)
-                            0 (S.L.lights_sw_fern)
-                        {else}
-                            1 (S.L.cp_schluessel_rot)
-                            (L.L.cp_schluessel_rot) 1 = (L.L.AI_Light) 1 > * (S.L.lights_sw_fern)
+                            l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_on_timer) s7
                         {endif}
-                        (L.L.ai_ext_stop_ext_light_resetting_time_alt) -1 = !
+                        l7 !
+                        {if}
+                            1 (S.L.ai_ovh_int_lights_on)
+                            (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                        {endif}
+                    {else}
+                        (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                    {endif}
+                    (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                {else}
+                    (L.L.ai_ovh_int_lights_on)
+                    {if}
+                        (L.L.ai_lighting_int_off_timer) s7
+                        {if}
+                            l7 (L.L._r10) - 0 max (S.L.ai_lighting_int_off_timer) s7
+                        {endif}
+                        l7 !
+                        {if}
+                            0 (S.L.ai_ovh_int_lights_on)
+                            (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                        {endif}
+                    {else}
+                        (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+                    {endif}
+                    (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+                {endif}
+                (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
+                    (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
+                    (S.L.ai_lighting_actualization_threshold)
+            {endif}
+        {endif}
+
+        (L.L.ai_ovh_lights_on)
+        {if}
+            (L.L.ai_ext_stop_dimmed_ext_lights) s2
+            (L.L.AI_Scheduled_AtStation) s1 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_ext_stop_dim_ext_lights) && (L.L.ai_stop_timer)
+                (L.L.ai_ext_stop_ext_light_dimming_delay) (L.L.ai_estimated_stop_duration) 9 / min > && (L.L.ai_stop_timer)
+                (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_ext_light_resetting_delay) - (L.L.ai_estimated_stop_duration) d 9 / - max
+                (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max s3 < && s0 l2 ! &&
+            {if}
+                1 s2
+            {else}
+                l0 ! l2 && l1 ! && (L.L.ai_departure_lookahead) &&
+                {if}
+                    (L.L.ai_quick_departure) (L.L.ai_ext_stop_ext_light_resetting_time_alt) -1 = &&
+                    {if}
+                        (L.L._game_time) (L.L.ai_ext_stop_ext_light_resetting_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 +
+                            (L.L.ai_ext_stop_turn_engine_off) * max + (S.L.ai_ext_stop_ext_light_resetting_time_alt)
+                    {endif}
+                    (L.L.ai_stop_timer) l3 >= (L.L.ai_ext_stop_ext_light_resetting_time_alt) s3 -1 = ! (L.L._game_time) l3 >= && ||
+                    {if}
+                        0 s2
+                        l3 -1 = !
                         {if}
                             -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt)
                         {endif}
                     {endif}
                 {endif}
-                (L.L.cp_schluessel_rot) ! (L.L.ai_sun_alt) (C.L.ai_lighting_profile_4_min_sun_elevation) < && (L.L.AI_Scheduled_AtStation) 1 = &&
-                    (L.L.cp_licht_unterdeck_sw) (L.L.doorTarget_0) || && (S.L.cp_fahrerlicht_sw)
-                (L.L.cp_schluessel_rot) ! (L.L.ai_lighting_off_timer) (L.L.ai_lighting_brightness_tolerance) < &&
-                {if}
-                    (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
-                    0 (S.L.ai_ovh_lights_on)
-                    (L.L.ai_ovh_int_lights_on) (L.L.ai_lighting_int_off_timer) (L.L.ai_lighting_int_brightness_tolerance) < &&
-                    {if}
-                        (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
-                        0 (S.L.ai_ovh_int_lights_on)
-                    {endif}
-                {endif}
-            {else}
-                0 (S.L.cp_fahrerlicht_sw) (S.L.cp_schluessel_rot) (S.L.lights_sw_fern)
             {endif}
-            (L.L.ai_ovh_int_lights_on)
+            l2 (S.L.ai_ext_stop_dimmed_ext_lights)
+
+            l2
             {if}
-                (L.L.ai_lighting_profile) 1 =
+                (L.L.ai_lighting_profile) 1 = (L.L.ai_lighting_profile) 4 = ! (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 -
+                    (C.L.ai_lighting_profile_4_min_sun_elevation) max < && || 0.5 * s2
                 {if}
-                    1 (S.L.cp_licht_unterdeck_sw) (S.L.cp_licht_untenrechts_sw)
+                    0
                 {else}
-                    (L.L.humans_count) || (L.L.ai_on_service_trip) ! || (L.L.ai_lighting_service_trip_int_off) ! || (S.L.cp_licht_unterdeck_sw)
-                        (L.L.ai_lighting_profile) 4 = ! && (L.S.Time) trunc (C.L.secs_per_hour) / (S.L._r10) 5.5 (L.L.ai_lighting_int_front_on_variation) + >
-                        (L.L._r10) 22.5 (L.L.ai_lighting_int_front_off_variation) + < && && (S.L.cp_licht_untenrechts_sw)
+                    (L.L.ai_lighting_off_timer) (L.L.ai_lighting_brightness_tolerance) <
+                    {if}
+                        (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
+                        0 (S.L.ai_ovh_lights_on)
+                        (L.L.ai_ovh_int_lights_on) (L.L.ai_lighting_int_off_timer) (L.L.ai_lighting_int_brightness_tolerance) < &&
+                        {if}
+                            0.5 500 random 100 / + (S.L.ai_lighting_int_off_timer)
+                        {endif}
+                    {endif}
+                    (L.L.ai_sun_alt) (C.L.ai_lighting_profile_4_min_sun_elevation) < (L.L.cp_licht_unterdeck_sw) (L.L.doorTarget_0) || &&
+                        (L.L.ai_ext_stop_use_driver_light) &&
                 {endif}
+                s3
+            {else}
+                (L.L.ai_lighting_profile) 4 = (L.L.ai_sun_alt) (L.L.ai_lighting_sun_elevation_threshold) 5 - > &&
+                    (L.L.ai_lighting_dusk_or_dawn_standstill_only) &&
+                {if}
+                    0.5
+                {else}
+                    1
+                {endif}
+                s2
+                0 s3
+            {endif}
+        {else}
+            0 s2 s3
+        {endif}
+
+        l2 (L.L.cp_schluessel_rot) = !
+        {if}
+            l2 (S.L.cp_schluessel_rot)
+            (T.L.ev_schluessel_dreh)
+        {endif}
+        l3 (L.L.cp_fahrerlicht_sw) = !
+        {if}
+            l3 (S.L.cp_fahrerlicht_sw)
+            {if}
+                (T.L.ev_kippschalter_ein)
+            {else}
+                (T.L.ev_kippschalter_aus)
+            {endif}
+        {endif}
+
+        (L.L.cp_licht_unterdeck_sw) s2
+        (L.L.cp_licht_untenrechts_sw) s3
+        (L.L.ai_ovh_int_lights_on)
+        {if}
+            (L.L.ai_lighting_profile) 1 = !
+            {if}
+                (L.L.humans_count) (L.L.ai_on_service_trip) ! || (L.L.ai_lighting_service_trip_int_off) ! || (L.L.ai_trip_duration) (L.L.ai_lighting_service_trip_int_off_min_trip_duration) <
+                    (L.L.ai_trip_duration) -1 = ! && || s2 (L.L.ai_lighting_profile) 4 = ! && (L.S.Time) trunc (C.L.secs_per_hour) / (S.L._r10) 5.5 (L.L.ai_lighting_int_front_on_temporal_variation) + > (L.L._r10) 22.5
+                    (L.L.ai_lighting_int_front_off_temporal_variation) + < && (L.L.ai_sun_alt) -15 (L.L.ai_lighting_int_front_off_sun_elevation_variation) + > || && s3
+
                 (L.L.cp_licht_unterdeck_sw) ! (L.L.ai_lighting_int_off_timer) (L.L.ai_lighting_int_brightness_tolerance) < &&
                 {if}
                     (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
                     0 (S.L.ai_ovh_int_lights_on)
                 {endif}
-            {else}
-                0 (S.L.cp_licht_unterdeck_sw) (S.L.cp_licht_untenrechts_sw)
+            {endif}
+        {else}
+            0 s2 s3
+        {endif}
+
+        (L.L.ai_lighting_initialized)
+        {if}
+            (L.L.ai_lighting_profile) 1 = !
+            {if}
+                l2 (L.L.cp_licht_unterdeck_sw) = !
+                {if}
+                    (L.L.ai_lighting_int_main_sw_last_triggered) -1 =
+                    {if}
+                        (L.L._game_time) 0.5 200 random 100 / + + (S.L.ai_lighting_int_main_sw_last_triggered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_lighting_int_main_sw_last_triggered) < (L.L.temporal_transition_anomalous) ! &&
+                    {if}
+                        (L.L.cp_licht_unterdeck_sw) s2
+                    {else}
+                        -1 (S.L.ai_lighting_int_main_sw_last_triggered)
+                    {endif}
+                {else}
+                    (L.L.ai_lighting_int_main_sw_last_triggered) -1 = !
+                    {if}
+                        -1 (S.L.ai_lighting_int_main_sw_last_triggered)
+                    {endif}
+                {endif}
+
+                l3 (L.L.cp_licht_untenrechts_sw) = !
+                {if}
+                    (L.L.ai_lighting_int_front_sw_last_triggered) -1 =
+                    {if}
+                        (L.L.ai_lighting_int_main_sw_last_triggered) -1 =
+                        {if}
+                            (L.L._game_time) 0.5 200 random 100 / + +
+                        {else}
+                            0.5 200 random 100 / + s0
+                            2 random
+                            {if}
+                                l0 /-/ s0
+                            {endif}
+                            (L.L.ai_lighting_int_main_sw_last_triggered) l0 +
+                        {endif}
+                        (S.L.ai_lighting_int_front_sw_last_triggered)
+                    {endif}
+                    (L.L._game_time) (L.L.ai_lighting_int_front_sw_last_triggered) < (L.L.temporal_transition_anomalous) ! &&
+                    {if}
+                       (L.L.cp_licht_untenrechts_sw) s3
+                    {else}
+                        -1 (S.L.ai_lighting_int_front_sw_last_triggered)
+                    {endif}
+                {else}
+                    (L.L.ai_lighting_int_front_sw_last_triggered) -1 = !
+                    {if}
+                        -1 (S.L.ai_lighting_int_front_sw_last_triggered)
+                    {endif}
+                {endif}
+            {endif}
+        {else}
+            (L.L.ai_lighting_profile) 1 = !
+            {if}
+                l2 (S.L.cp_licht_unterdeck_sw)
+                l3 (S.L.cp_licht_untenrechts_sw)
+                -1 (S.L.ai_lighting_int_main_sw_last_triggered) (S.L.ai_lighting_int_front_sw_last_triggered)
             {endif}
         {endif}
+
+        l2 (L.L.cp_licht_unterdeck_sw) = !
+        {if}
+            l2 (S.L.cp_licht_unterdeck_sw)
+            {if}
+                (T.L.ev_kippschalter_ein)
+            {else}
+                (T.L.ev_kippschalter_aus)
+            {endif}
+        {endif}
+
+        l3 (L.L.cp_licht_untenrechts_sw) = !
+        {if}
+            l3 (S.L.cp_licht_untenrechts_sw)
+            {if}
+                (T.L.ev_kippschalter_ein)
+            {else}
+                (T.L.ev_kippschalter_aus)
+            {endif}
+        {endif}
+
+        (L.L.ai_lighting_initialized) !
+        {if}
+            1 (S.L.ai_lighting_initialized)
+        {endif}
     {else}
-        (C.L.ai_lighting_is_omsi_controlled) ! (L.L.ai_lighting_profile) 1 = ! &&
+        (L.L.ai_lighting_profile) 1 = !
         {if}
             0 (S.L.ai_lighting_actualization_timer)
-            -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt) (S.L.ai_ext_stop_indicator_on_time_alt)
+            -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt)
             (L.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer)
             (L.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer)
             (L.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
             (L.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
         {endif}
+        0 (S.L.ai_indicator_l_override_state)
+        -1 (S.L.ai_ext_stop_indicator_on_time_alt) (S.L.ai_forget_indicator_adjustment)
 	{endif}
+
     (M.L.lights_frame_post__map_delegate)
 {end}
 
 {macro:lights_init}
-	-1 (S.L.Spot_Select)
-	(M.L.lights_lifetimeinit)
+    -1 (S.L.Spot_Select)
+    (M.L.lights_availability_init)
 
-	(C.L.ai_lighting_is_omsi_controlled) !
-	{if}
-		(C.L.ai_lighting_profile_1_chance) random 1 = s0
-		l0 ! (C.L.ai_lighting_profile_4_chance) random 1 = &&
-		{if}
-			4 s0
-            (C.L.ai_lighting_profile_4_min_sun_elevation) (C.L.ai_lighting_profile_4_sun_elevation_variation)
-                (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
-		{endif}
-		l0 ! (C.L.ai_lighting_profile_2_chance) random 1 = &&
-		{if}
-			2 s0
-            (C.L.ai_lighting_profile_2_min_sun_elevation) (C.L.ai_lighting_profile_2_sun_elevation_variation)
-                (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
-            (C.L.ai_lighting_profile_2_min_brightness) (C.L.ai_lighting_profile_2_brightness_variation)
-                (C.L.ai_lighting_brightness_variation_granularity) s3 * random l3 / + s2
-            (C.L.ai_lighting_profile_2_min_brightness_under_precipitation)
-                (C.L.ai_lighting_profile_2_brightness_variation_under_precipitation) l3 * random l3 / + s3
-            (C.L.ai_lighting_profile_2_max_precipitation) (C.L.ai_lighting_profile_2_precipitation_variation)
-                (C.L.ai_lighting_precipitation_variation_granularity) s4 * random l4 / + s4
-		{endif}
-		l0 !
-		{if}
-            3 s0
-            (C.L.ai_lighting_profile_3_min_sun_elevation) (C.L.ai_lighting_profile_3_sun_elevation_variation)
-                (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
-            (C.L.ai_lighting_profile_3_min_brightness) (C.L.ai_lighting_profile_3_brightness_variation)
-                (C.L.ai_lighting_brightness_variation_granularity) s3 * random l3 / + s2
-            (C.L.ai_lighting_profile_3_min_brightness_under_precipitation)
-                (C.L.ai_lighting_profile_3_brightness_variation_under_precipitation) l3 * random l3 / + s3
-            (C.L.ai_lighting_profile_3_max_precipitation) (C.L.ai_lighting_profile_3_precipitation_variation)
-                (C.L.ai_lighting_precipitation_variation_granularity) s4 * random l4 / + s4
-		{endif}
-        l0 (S.L.ai_lighting_profile) 1 =
+    (C.L.ai_lighting_profile_1_chance) random 1 = s0
+    l0 ! (C.L.ai_lighting_profile_4_chance) random 1 = &&
+    {if}
+        4 s0
+        (C.L.ai_lighting_profile_4_min_sun_elevation) (C.L.ai_lighting_profile_4_sun_elevation_variation)
+            (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
+    {endif}
+    l0 ! (C.L.ai_lighting_profile_2_chance) random 1 = &&
+    {if}
+    2 s0
+        (C.L.ai_lighting_profile_2_min_sun_elevation) (C.L.ai_lighting_profile_2_sun_elevation_variation)
+            (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
+        (C.L.ai_lighting_profile_2_min_brightness) (C.L.ai_lighting_profile_2_brightness_variation)
+            (C.L.ai_lighting_brightness_variation_granularity) s3 * random l3 / + s2
+        (C.L.ai_lighting_profile_2_min_brightness_under_precipitation)
+            (C.L.ai_lighting_profile_2_brightness_variation_under_precipitation) l3 * random l3 / + s3
+        (C.L.ai_lighting_profile_2_max_precipitation) (C.L.ai_lighting_profile_2_precipitation_variation)
+            (C.L.ai_lighting_precipitation_variation_granularity) s4 * random l4 / + s4
+    {endif}
+    l0 !
+    {if}
+        3 s0
+        (C.L.ai_lighting_profile_3_min_sun_elevation) (C.L.ai_lighting_profile_3_sun_elevation_variation)
+            (C.L.ai_lighting_sun_elevation_variation_granularity) s1 * random l1 / + s1
+        (C.L.ai_lighting_profile_3_min_brightness) (C.L.ai_lighting_profile_3_brightness_variation)
+            (C.L.ai_lighting_brightness_variation_granularity) s3 * random l3 / + s2
+        (C.L.ai_lighting_profile_3_min_brightness_under_precipitation)
+            (C.L.ai_lighting_profile_3_brightness_variation_under_precipitation) l3 * random l3 / + s3
+        (C.L.ai_lighting_profile_3_max_precipitation) (C.L.ai_lighting_profile_3_precipitation_variation)
+            (C.L.ai_lighting_precipitation_variation_granularity) s4 * random l4 / + s4
+    {endif}
+    l0 (S.L.ai_lighting_profile) 1 =
+    {if}
+        1 (S.L.ai_ovh_lights_on) (S.L.ai_ovh_int_lights_on) (S.L.cp_licht_unterdeck_sw) (S.L.cp_licht_untenrechts_sw)
+            (S.L.ai_lighting_initialized)
+    {else}
+        l1 (S.L.ai_lighting_sun_elevation_threshold)
+        l0 4 = !
         {if}
-            1 (S.L.ai_ovh_lights_on) (S.L.ai_ovh_int_lights_on)
-        {else}
-            l1 (S.L.ai_lighting_sun_elevation_threshold)
-            l0 4 = !
+            l2 (S.L.ai_lighting_brightness_threshold)
+            l3 (S.L.ai_lighting_brightness_threshold_under_precipitation)
+            l4 (S.L.ai_lighting_precipitation_threshold)
+            600 random 10 / s0
+            2 random
             {if}
-                l2 (S.L.ai_lighting_brightness_threshold)
-                l3 (S.L.ai_lighting_brightness_threshold_under_precipitation)
-                l4 (S.L.ai_lighting_precipitation_threshold)
-                0 (S.L.ai_lighting_dusk_or_dawn_standstill_only)
-                600 random 10 / s0
-                2 random 0 =
-                {if}
-                    l0 /-/ s0
-                {endif}
-                l0 60 / (S.L.ai_lighting_int_front_on_variation)
-                600 random 10 / s0
-                2 random 0 =
-                {if}
-                    l0 /-/ s0
-                {endif}
-                l0 60 / (S.L.ai_lighting_int_front_off_variation)
-            {else}
-                -1 (S.L.ai_lighting_brightness_threshold) (S.L.ai_lighting_brightness_threshold_under_precipitation) (S.L.ai_lighting_precipitation_threshold)
-                    (S.L.ai_lighting_int_front_on_variation) (S.L.ai_lighting_int_front_off_variation)
-                100 random 40 < (S.L.ai_lighting_dusk_or_dawn_standstill_only)
+                l0 /-/ s0
             {endif}
-            (C.L.ai_lighting_thresholds_departure_tolerance) s0
-                (C.L.ai_lighting_thresholds_darkness_tolerance_variation) random +
-                (S.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer) 60 random 10 + + (S.L.ai_lighting_int_darkness_tolerance)
-                (S.L.ai_lighting_int_on_timer)
-            l0 (C.L.ai_lighting_thresholds_brightness_tolerance_variation) random +
-                (S.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer) 60 random 10 + - 10 random 5 + max (S.L.ai_lighting_int_brightness_tolerance)
-                (S.L.ai_lighting_int_off_timer)
-            (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation)
-                (C.L.ai_lighting_actualization_margin_granularity) s0 * random l0 / +
-                (S.L.ai_lighting_actualization_threshold)
-            100 random 40 < (S.L.ai_lighting_service_trip_int_off)
-            0 (S.L.ai_lighting_actualization_timer) (S.L.ai_ovh_lights_on) (S.L.ai_ovh_int_lights_on) (S.L.ai_lighting_initialized)
+            l0 60 / (S.L.ai_lighting_int_front_on_temporal_variation)
+            600 random 10 / s0
+            2 random
+            {if}
+                l0 /-/ s0
+            {endif}
+            l0 60 / (S.L.ai_lighting_int_front_off_temporal_variation)
+            2000 random 100 / (S.L.ai_lighting_int_front_off_sun_elevation_variation)
+        {else}
+            100 random 40 < (S.L.ai_lighting_dusk_or_dawn_standstill_only)
         {endif}
-        (M.L.lights_init__map_delegate)
-	{endif}
-    
+        (C.L.ai_lighting_thresholds_departure_tolerance) s0 (C.L.ai_lighting_thresholds_darkness_tolerance_variation) random +
+            (S.L.ai_lighting_darkness_tolerance) (S.L.ai_lighting_on_timer) s1
+        0.5 1000 random 100 / + s2
+        2 random
+        {if}
+            l2 /-/ s2
+        {endif}
+        l1 l2 + (S.L.ai_lighting_int_darkness_tolerance) (S.L.ai_lighting_int_on_timer)
+        l0 (C.L.ai_lighting_thresholds_brightness_tolerance_variation) random + (S.L.ai_lighting_brightness_tolerance) (S.L.ai_lighting_off_timer) s1
+        0.5 1000 random 100 / + s2
+        2 random
+        {if}
+            l2 /-/ s2
+        {endif}
+        l1 l2 + (S.L.ai_lighting_int_brightness_tolerance) (S.L.ai_lighting_int_off_timer)
+        (C.L.ai_lighting_actualization_margin) (C.L.ai_lighting_actualization_margin_variation) (C.L.ai_lighting_actualization_margin_granularity) s0 *
+            random l0 / + (S.L.ai_lighting_actualization_threshold)
+        100 random 40 < (S.L.ai_lighting_service_trip_int_off)
+        {if}
+            60 840 random + (S.L.ai_lighting_service_trip_int_off_min_trip_duration)
+        {endif}
+        100 random 60 < (S.L.ai_ext_stop_use_driver_light)
+    {endif}
+
+    (M.L.lights_init__map_delegate)
+
     25000 random 1000 / (S.L.ai_ext_stop_ext_light_dimming_delay)
     1 25000 random 1000 / + (S.L.ai_ext_stop_ext_light_resetting_delay)
     50000 random 10000 / (S.L.ai_ext_stop_ext_light_resetting_delay_alt)
     -1 (S.L.ai_ext_stop_ext_light_resetting_time_alt)
-    
+
     10000 random 1000 / (S.L.ai_ext_stop_indicator_off_delay)
     1 10000 random 1000 / + (S.L.ai_ext_stop_indicator_on_delay)
     30000 random 10000 / (S.L.ai_ext_stop_indicator_on_delay_alt)
     -1 (S.L.ai_ext_stop_indicator_on_time_alt)
+
+    -1 (S.L.ai_lighting_int_main_sw_last_triggered) (S.L.ai_lighting_int_front_sw_last_triggered)
 {end}
 
 {macro:lights_startblinkgeber}
-	(L.L.elec_busbar_main) 0.4 >  (L.L.elec_busbar_avail) 0.4 >  (L.L.lights_sw_warnblinker) && || 
+	(L.L.elec_busbar_main) 0.4 >  (L.L.elec_busbar_avail) 0.4 >  (L.L.lights_sw_warnblinker) && ||
 	(L.L.lights_blinker_running) ! &&
 	{if}
 		(T.L.ev_lights_blinker_on)
-		(C.L.lights_blinkertime_firston) (L.L.lights_blinkgeber_faktor) * (S.L.lights_blinkgeber_timegap) 
+		(C.L.lights_blinkertime_firston) (L.L.lights_blinkgeber_faktor) * (S.L.lights_blinkgeber_timegap)
 		1 (S.L.lights_blinkgeber) (S.L.lights_blinker_running)
 		0 (S.L.lights_blinker_runtime)
 	{endif}
+{end}
+
+{macro:lights_bulbcalc}
+    (L.L.cp_taster_nebelschluss_target) (L.L.elec_busbar_main) sqr * (S.L.lights_nebelschluss)
+	(L.L.cp_licht_nebelschw_sw) (L.L.elec_busbar_main) sqr * (S.L.lights_nebelschw)
+
+    (L.L.lights_stand) s0 (L.L.lights_marker_l_1_operable) * (S.L.lights_marker_l_1_on)
+    l0 (L.L.lights_marker_l_2_operable) * (S.L.lights_marker_l_2_on)
+    l0 (L.L.lights_marker_r_1_operable) * (S.L.lights_marker_r_1_on)
+    l0 (L.L.lights_marker_r_2_operable) * (S.L.lights_marker_r_2_on)
+
+    l0 (L.L.lights_standstill_l_1_operable) * (S.L.lights_standstill_l_1_on)
+    l0 (L.L.lights_standstill_l_2_operable) * (S.L.lights_standstill_l_2_on)
+    l0 (L.L.lights_standstill_r_1_operable) * (S.L.lights_standstill_r_1_on)
+    l0 (L.L.lights_standstill_r_2_operable) * (S.L.lights_standstill_r_2_on)
+
+    l0 (L.L.lights_license_plate_l_operable) * (S.L.lights_license_plate_l_on)
+    l0 (L.L.lights_license_plate_r_operable) * (S.L.lights_license_plate_r_on)
+
+    l0 (L.L.lights_matrix_1_operable) * (S.L.lights_matrix_1_on)
+    l0 (L.L.lights_matrix_2_operable) * (S.L.lights_matrix_2_on)
+    l0 (L.L.lights_matrix_3_operable) * (S.L.lights_matrix_3_on)
+
+    (L.L.lights_abbl) s0 (L.L.lights_head_l_operable) * (S.L.lights_head_l_on)
+    l0 (L.L.lights_head_r_operable) * (S.L.lights_head_r_on)
+
+    (L.L.lights_fahrerlicht) (L.L.lights_driver_operable) * (S.L.lights_driver_on)
+
+    (L.L.door_light_1) (L.L.lights_door_1_operable) * (S.L.lights_door_1_on)
+    (L.L.door_light_2) (L.L.lights_door_2_operable) * (S.L.lights_door_2_on)
+    (L.L.door_light_3) (L.L.lights_door_3_operable) * (S.L.lights_door_3_on)
+
+    (L.L.lights_beleuchtung_untenrechts) (L.L.lights_passenger_1_operable) * (S.L.lights_passenger_1_on)
+    (L.L.lights_beleuchtung_unterdeck) s0 (L.L.lights_passenger_2_operable) * (S.L.lights_passenger_2_on)
+    l0 (L.L.lights_passenger_3_operable) * (S.L.lights_passenger_3_on)
+    l0 (L.L.lights_passenger_4_operable) * (S.L.lights_passenger_4_on)
+    l0 (L.L.lights_passenger_5_operable) * (S.L.lights_passenger_5_on)
+
+'In HH kein Bremslicht bei aktiver Haltestellenbremse
+    (L.L.ai_brake) 0.1 > (L.L.bremse_halte) (C.L.lights_brems_haltestellenbremse) && || (L.L.elec_busbar_main) sqr *
+        (S.L.lights_brems) s0 (L.L.lights_brake_l_operable) * (S.L.lights_brake_l_on)
+    l0 (L.L.lights_brake_r_operable) * (S.L.lights_brake_r_on)
+
+	(L.L.antrieb_getr_gangwahl) 0 = (L.L.elec_busbar_main) sqr *
+		(S.L.lights_rueckfahr)
+
+	(L.L.lights_sw_blinker) 1 = (L.L.lights_sw_warnblinker) || (L.L.lights_blinkgeber) && (L.L.elec_busbar_avail) sqr *
+		(S.L.lights_blinker_l) s0 (L.L.lights_indicator_l_1_operable) * (S.L.lights_indicator_l_1_on)
+    l0 (L.L.lights_indicator_l_2_operable) * (S.L.lights_indicator_l_2_on)
+    l0 (L.L.lights_indicator_l_3_operable) * (S.L.lights_indicator_l_3_on)
+    l0 (L.L.lights_indicator_l_4_operable) * (S.L.lights_indicator_l_4_on)
+    l0 (L.L.lights_indicator_l_5_operable) * (S.L.lights_indicator_l_5_on)
+
+	(L.L.lights_sw_blinker) 2 = (L.L.lights_sw_warnblinker) || (L.L.lights_blinkgeber) && (L.L.elec_busbar_avail) sqr *
+		(S.L.lights_blinker_r) s0 (L.L.lights_indicator_r_1_operable) * (S.L.lights_indicator_r_1_on)
+    l0 (L.L.lights_indicator_r_2_operable) * (S.L.lights_indicator_r_2_on)
+    l0 (L.L.lights_indicator_r_3_operable) * (S.L.lights_indicator_r_3_on)
+    l0 (L.L.lights_indicator_r_4_operable) * (S.L.lights_indicator_r_4_on)
+    l0 (L.L.lights_indicator_r_5_operable) * (S.L.lights_indicator_r_5_on)
 {end}
 
 {macro:lights_runblinkgeber}
@@ -655,7 +932,7 @@
 	(L.L.elec_busbar_avail) 0.4 >  (L.L.lights_sw_warnblinker) && ||
 	{if}
 		(L.S.Timegap) (L.L.lights_blinker_runtime) + (S.L.lights_blinker_runtime)
-		(L.L.lights_blinker_runtime) (L.L.lights_blinkgeber_timegap) > (L.L.lights_sw_blinker) (L.L.lights_sw_warnblinker) || && 
+		(L.L.lights_blinker_runtime) (L.L.lights_blinkgeber_timegap) > (L.L.lights_sw_blinker) (L.L.lights_sw_warnblinker) || &&
 		{if}
 			(L.L.lights_blinkgeber) ! (S.L.lights_blinkgeber)
 			{if}
@@ -680,133 +957,20 @@
 	{endif}
 {end}
 
-{macro:lights_lifetimecalc}
-{end}
-
-{macro:lights_malfunction_minute_trigger}
-	0.001666667 s0
-	(L.L.lights_abbl_bulb_1) 0.3 >= {if} (L.L.lights_abbl_bulb_1_lifetime) l0 - (S.L.lights_abbl_bulb_1_lifetime) {endif}
-	(L.L.lights_abbl_bulb_2) 0.3 >= {if} (L.L.lights_abbl_bulb_2_lifetime) l0 - (S.L.lights_abbl_bulb_2_lifetime) {endif}
-	(L.L.lights_edge_front_bulb_l) 0.3 >= {if} (L.L.lights_edge_front_bulb_l_lifetime) l0 - (S.L.lights_edge_front_bulb_l_lifetime) {endif}
-	(L.L.lights_edge_front_bulb_r) 0.3 >= {if} (L.L.lights_edge_front_bulb_r_lifetime) l0 - (S.L.lights_edge_front_bulb_r_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_1) 0.3 >= {if} (L.L.lights_blinker_l_bulb_1_lifetime) l0 - (S.L.lights_blinker_l_bulb_1_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_2) 0.3 >= {if} (L.L.lights_blinker_l_bulb_2_lifetime) l0 - (S.L.lights_blinker_l_bulb_2_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_3) 0.3 >= {if} (L.L.lights_blinker_l_bulb_3_lifetime) l0 - (S.L.lights_blinker_l_bulb_3_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_4) 0.3 >= {if} (L.L.lights_blinker_l_bulb_4_lifetime) l0 - (S.L.lights_blinker_l_bulb_4_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_5) 0.3 >= {if} (L.L.lights_blinker_l_bulb_5_lifetime) l0 - (S.L.lights_blinker_l_bulb_5_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_1) 0.3 >= {if} (L.L.lights_blinker_r_bulb_1_lifetime) l0 - (S.L.lights_blinker_r_bulb_1_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_2) 0.3 >= {if} (L.L.lights_blinker_r_bulb_2_lifetime) l0 - (S.L.lights_blinker_r_bulb_2_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_3) 0.3 >= {if} (L.L.lights_blinker_r_bulb_3_lifetime) l0 - (S.L.lights_blinker_r_bulb_3_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_4) 0.3 >= {if} (L.L.lights_blinker_r_bulb_4_lifetime) l0 - (S.L.lights_blinker_r_bulb_4_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_5) 0.3 >= {if} (L.L.lights_blinker_r_bulb_5_lifetime) l0 - (S.L.lights_blinker_r_bulb_5_lifetime) {endif}
-	(L.L.lights_fahrerlicht_bulb) 0.3 >= {if} (L.L.lights_fahrerlicht_bulb_lifetime) l0 - (S.L.lights_fahrerlicht_bulb_lifetime) {endif}
-{end}
-
-{macro:lights_bulbcalc}
-	(L.L.lights_blinker_l_bulb_1_lifetime) 0 >= {if} (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_l_bulb_1)
-	(L.L.lights_blinker_l_bulb_2_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 2 >= && {if} (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_l_bulb_2)
-	(L.L.lights_blinker_l_bulb_3_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 3 >= && {if} (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_l_bulb_3)
-	(L.L.lights_blinker_l_bulb_4_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 4 >= && {if} (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_l_bulb_4)
-	(L.L.lights_blinker_l_bulb_5_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 5 >= && {if} (L.L.lights_blinker_l) {else} 0 {endif} (S.L.lights_blinker_l_bulb_5)
-	(L.L.lights_blinker_r_bulb_1_lifetime) 0 >= {if} (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_r_bulb_1)
-	(L.L.lights_blinker_r_bulb_2_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 2 >= && {if} (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_r_bulb_2)
-	(L.L.lights_blinker_r_bulb_3_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 3 >= && {if} (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_r_bulb_3)
-	(L.L.lights_blinker_r_bulb_4_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 4 >= && {if} (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_r_bulb_4)
-	(L.L.lights_blinker_r_bulb_5_lifetime) 0 >= (C.L.lights_blinker_bulb_cnt) 5 >= && {if} (L.L.lights_blinker_r) {else} 0 {endif} (S.L.lights_blinker_r_bulb_5)
-	(L.L.lights_fahrerlicht_bulb_lifetime) 0 >= {if} (L.L.lights_fahrerlicht) {else} 0 {endif} (S.L.lights_fahrerlicht_bulb)
-
-	(L.L.lights_abbl_bulb_1_lifetime) 0 >= {if} (L.L.lights_abbl) {else} 0 {endif} (S.L.lights_abbl_bulb_1)
-	(L.L.lights_abbl_bulb_2_lifetime) 0 >= {if} (L.L.lights_abbl) {else} 0 {endif} (S.L.lights_abbl_bulb_2)
-
-	(C.L.lights_edge_avl)
-	{if}
-		(L.L.lights_edge_front_bulb_l_lifetime) 0 >= {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_edge_front_bulb_l)
-		(L.L.lights_edge_front_bulb_r_lifetime) 0 >= {if} (L.L.lights_stand) {else} 0 {endif} (S.L.lights_edge_front_bulb_r)
-	{endif}
-{end}
-
-{macro:lights_lifetimeinit}
-	(C.L.lights_bulb_frontlight_livetime_h) random (L.L.wearlifespan) * (S.L.lights_abbl_bulb_1_lifetime)
-	(C.L.lights_bulb_frontlight_livetime_h) random (L.L.wearlifespan) * (S.L.lights_abbl_bulb_2_lifetime)
-
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_edge_front_bulb_l_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_edge_front_bulb_r_lifetime)
-
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_l_bulb_1_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_l_bulb_2_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_l_bulb_3_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_l_bulb_4_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_l_bulb_5_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_r_bulb_1_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_r_bulb_2_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_r_bulb_3_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_r_bulb_4_lifetime)
-	(C.L.lights_bulb_signal_livetime_h) random (L.L.wearlifespan) * (S.L.lights_blinker_r_bulb_5_lifetime)
-
-	(C.L.lights_bulb_inside_livetime_h) random (L.L.wearlifespan) * (S.L.lights_fahrerlicht_bulb_lifetime)
-{end}
-
-{macro:lights_repair}
-	(L.L.lights_abbl_bulb_1_lifetime) 0 < {if} (C.L.lights_bulb_frontlight_livetime_h) random (S.L.lights_abbl_bulb_1_lifetime) {endif}
-	(L.L.lights_abbl_bulb_2_lifetime) 0 < {if} (C.L.lights_bulb_frontlight_livetime_h) random (S.L.lights_abbl_bulb_2_lifetime) {endif}
-
-	(L.L.lights_edge_front_bulb_l_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_edge_front_bulb_l_lifetime) {endif}	
-	(L.L.lights_edge_front_bulb_r_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_edge_front_bulb_r_lifetime) {endif}	
-	(L.L.lights_blinker_l_bulb_1_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_l_bulb_1_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_2_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_l_bulb_2_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_3_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_l_bulb_3_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_4_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_l_bulb_4_lifetime) {endif}
-	(L.L.lights_blinker_l_bulb_5_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_l_bulb_5_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_1_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_r_bulb_1_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_2_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_r_bulb_2_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_3_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_r_bulb_3_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_4_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_r_bulb_4_lifetime) {endif}
-	(L.L.lights_blinker_r_bulb_5_lifetime) 0 < {if} (C.L.lights_bulb_signal_livetime_h) random (S.L.lights_blinker_r_bulb_5_lifetime) {endif}
-
-	(L.L.lights_fahrerlicht_bulb_lifetime) 0 < {if} (C.L.lights_bulb_inside_livetime_h) random (S.L.lights_fahrerlicht_bulb_lifetime) {endif}
-{end}
-
-{macro:lights_repair_timecalc}
-
-'Berechnung der Zeit, die benötigt wird, um die Schäden zu reparieren:
-
-	s0
-
-	(L.L.lights_blinker_l_bulb_1_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_l_bulb_2_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_l_bulb_3_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_l_bulb_4_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_l_bulb_5_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_r_bulb_1_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_r_bulb_2_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_r_bulb_3_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_r_bulb_4_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_blinker_r_bulb_5_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_fahrerlicht_bulb_lifetime) 0 < 5 * l0 + s0
-
-	(L.L.lights_abbl_bulb_1_lifetime) 0 < 5 * l0 + s0
-	(L.L.lights_abbl_bulb_2_lifetime) 0 < 5 * l0 + s0
-
-	(L.L.lights_edge_front_bulb_l_lifetime) 0 < 3 * l0 + s0
-	(L.L.lights_edge_front_bulb_r_lifetime) 0 < 3 * l0 + s0
-
-	l0
-{end}
-
 {macro:lights_calc_geberfaktor}
 'Wenn eine Birne kaputt ist, dann schneller blinken:
-	(L.L.lights_blinker_l_bulb_1_lifetime) 0 <=
-	(L.L.lights_blinker_l_bulb_2_lifetime) 0 <= ||
-	(L.L.lights_blinker_l_bulb_3_lifetime) 0 <= ||
-	(L.L.lights_blinker_l_bulb_4_lifetime) 0 <= ||
-	(L.L.lights_blinker_l_bulb_5_lifetime) 0 <= ||
+	(L.L.lights_indicator_l_1_operable) !
+	(L.L.lights_indicator_l_2_operable) ! ||
+	(L.L.lights_indicator_l_3_operable) ! ||
+	(L.L.lights_indicator_l_4_operable) ! ||
+	(L.L.lights_indicator_l_5_operable) ! ||
 	(L.L.lights_sw_blinker) 1 = (L.L.lights_sw_warnblinker) || &&
 
-	(L.L.lights_blinker_r_bulb_1_lifetime) 0 <=
-	(L.L.lights_blinker_r_bulb_2_lifetime) 0 <= ||
-	(L.L.lights_blinker_r_bulb_3_lifetime) 0 <= ||
-	(L.L.lights_blinker_r_bulb_4_lifetime) 0 <= ||
-	(L.L.lights_blinker_r_bulb_5_lifetime) 0 <= || s5
+	(L.L.lights_indicator_r_1_operable) !
+	(L.L.lights_indicator_r_2_operable) ! ||
+	(L.L.lights_indicator_r_3_operable) ! ||
+	(L.L.lights_indicator_r_4_operable) ! ||
+	(L.L.lights_indicator_r_5_operable) ! ||
 	(L.L.lights_sw_blinker) 2 = (L.L.lights_sw_warnblinker) || && ||
 	{if}
 		0.5
@@ -814,6 +978,67 @@
 		1
 	{endif}
 	(S.L.lights_blinkgeber_faktor)
+{end}
+
+{macro:lights_availability_init}
+    50 random 0 > (S.L.lights_marker_l_1_operable)
+
+    50 random 0 > (S.L.lights_marker_r_1_operable)
+    50 random 0 > (S.L.lights_marker_l_2_operable)
+    50 random 0 > (S.L.lights_marker_r_2_operable)
+
+    100 random 0 > (S.L.lights_standstill_l_1_operable)
+    100 random 0 > (S.L.lights_standstill_r_1_operable)
+    100 random 0 > (S.L.lights_standstill_l_2_operable)
+    100 random 0 > (S.L.lights_standstill_r_2_operable)
+
+    125 random 0 > (S.L.lights_head_l_operable)
+    125 random 0 > (S.L.lights_head_r_operable)
+
+    150 random 0 > (S.L.lights_brake_l_operable)
+    150 random 0 > (S.L.lights_brake_r_operable)
+
+    1 (S.L.lights_matrix_1_operable)
+    1 (S.L.lights_matrix_2_operable)
+    50 random (S.L.lights_matrix_3_operable)
+
+    50 random 0 > (S.L.lights_license_plate_l_operable)
+    50 random 0 > (S.L.lights_license_plate_r_operable)
+
+    150 random 0 > (S.L.lights_indicator_l_1_operable)
+    150 random 0 > (S.L.lights_indicator_l_2_operable)
+    150 random 0 > (S.L.lights_indicator_l_3_operable)
+    150 random 0 > (S.L.lights_indicator_l_4_operable)
+    (L.L.articulated_variant)
+    {if}
+        150 random 0 >
+    {else}
+        1
+    {endif}
+    (S.L.lights_indicator_l_5_operable)
+    150 random 0 > (S.L.lights_indicator_r_1_operable)
+    150 random 0 > (S.L.lights_indicator_r_2_operable)
+    150 random 0 > (S.L.lights_indicator_r_3_operable)
+    150 random 0 > (S.L.lights_indicator_r_4_operable)
+    (L.L.articulated_variant)
+    {if}
+        150 random 0 >
+    {else}
+        1
+    {endif}
+    (S.L.lights_indicator_r_5_operable)
+
+    100 random 0 > (S.L.lights_driver_operable)
+
+    75 random 0 > (S.L.lights_passenger_1_operable)
+    1 (S.L.lights_passenger_2_operable)
+    1 (S.L.lights_passenger_3_operable)
+    1 (S.L.lights_passenger_4_operable)
+    1 (S.L.lights_passenger_5_operable)
+
+    50 random 0 > (S.L.lights_door_1_operable)
+    50 random 0 > (S.L.lights_door_2_operable)
+    50 random 0 > (S.L.lights_door_3_operable)
 {end}
 
 {macro:set_lighting_regs}

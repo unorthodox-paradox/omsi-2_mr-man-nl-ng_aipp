@@ -53,7 +53,7 @@
         {if}
             l0 (L.L.ai_wiper_fast_precip_min) >
             {if}
-                (L.L.ai_wiper_fast_timer) (L.S.Timegap) + (S.L.ai_wiper_fast_timer) (L.L.ai_wiper_env_tolerance) >
+                (L.L.ai_wiper_fast_timer) (L.L.ai_timegap) + (S.L.ai_wiper_fast_timer) (L.L.ai_wiper_env_tolerance) >
                 {if}
                     3 (S.L.ai_wiper_target)
                     0 (S.L.ai_wiper_fast_timer)
@@ -62,7 +62,7 @@
             {else}
                 l0 (L.L.ai_wiper_cont_precip_min) >
                 {if}
-                    (L.L.ai_wiper_cont_timer) (L.S.Timegap) + (S.L.ai_wiper_cont_timer) (L.L.ai_wiper_env_tolerance) >
+                    (L.L.ai_wiper_cont_timer) (L.L.ai_timegap) + (S.L.ai_wiper_cont_timer) (L.L.ai_wiper_env_tolerance) >
                     {if}
                         2 (S.L.ai_wiper_target)
                         0 (S.L.ai_wiper_cont_timer)
@@ -71,7 +71,7 @@
                 {else}
                     l0 (L.L.ai_wiper_int_precip_min) >
                     {if}
-                        (L.L.ai_wiper_int_timer) (L.S.Timegap) + (S.L.ai_wiper_int_timer) (L.L.ai_wiper_env_tolerance) >
+                        (L.L.ai_wiper_int_timer) (L.L.ai_timegap) + (S.L.ai_wiper_int_timer) (L.L.ai_wiper_env_tolerance) >
                         {if}
                             1 (S.L.ai_wiper_target)
                             0 (S.L.ai_wiper_int_timer)
@@ -80,7 +80,7 @@
                     {else}
                         (L.L.ai_wiper_target)
                         {if}
-                            (L.L.ai_wiper_off_timer) (L.S.Timegap) + (S.L.ai_wiper_off_timer) (L.L.ai_wiper_env_tolerance) >
+                            (L.L.ai_wiper_off_timer) (L.L.ai_timegap) + (S.L.ai_wiper_off_timer) (L.L.ai_wiper_env_tolerance) >
                             {if}
                                 0 (S.L.ai_wiper_target) (S.L.ai_wiper_off_timer)
                             {endif}
@@ -92,97 +92,99 @@
         {else}
             (L.L.ai_wiper_target)
             {if}
-                (L.L.ai_wiper_off_timer) (L.S.Timegap) + (S.L.ai_wiper_off_timer) (L.L.ai_wiper_env_tolerance) >
+                (L.L.ai_wiper_off_timer) (L.L.ai_timegap) + (S.L.ai_wiper_off_timer) (L.L.ai_wiper_env_tolerance) >
                 {if}
                     0 (S.L.ai_wiper_target) (S.L.ai_wiper_off_timer)
                 {endif}
                 0 (S.L.ai_wiper_fast_timer) (S.L.ai_wiper_cont_timer) (S.L.ai_wiper_int_timer)
             {endif}
         {endif}
-        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_at_extended_stop) && (L.L.ai_stop_timer) (L.L.ai_ext_stop_wiper_disabling_delay)
-            (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_wiper_reenabling_delay) -
-            (L.L.ai_estimated_stop_duration) d 10 / - max (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s1 !
+        (L.L.ai_ext_stop_disabled_wipers) s2
+        (L.L.AI_Scheduled_AtStation) s1 1 = (L.L.ai_stop_arrival_initialized) && (L.L.ai_at_extended_stop) 2 = (L.L.ai_at_terminus_stop) || &&
+            (L.L.ai_stop_timer) (L.L.ai_ext_stop_wiper_disabling_delay) (L.L.ai_estimated_stop_duration) 10 / min > && (L.L.ai_stop_timer)
+            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_wiper_reenabling_delay) - (L.L.ai_estimated_stop_duration) d 10 / - max
+            (L.L.ai_ext_stop_engine_on_actual_delay) 1.5 + (L.L.ai_ext_stop_turn_engine_off) * max s3 < && s0 l2 ! &&
         {if}
-            (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_disable_wipers) && (L.L.ai_wiper_target) && (L.L.cp_wischer_intervall_sw) ! &&
-                (L.L.cp_wischer_einaus_sw) ! && (L.L.cp_wischer_schnell_sw) ! && 
+            1 s2
+        {else}
+            l0 ! l2 && l1 ! && (L.L.ai_departure_lookahead) &&
             {if}
-                (L.L.ai_ext_stop_wiper_reenabling_time_alt) -1 =
+                (L.L.ai_quick_departure) (L.L.ai_ext_stop_wiper_reenabling_time_alt) -1 = &&
                 {if}
-                    (L.S.GetTime) (L.L.ai_ext_stop_wiper_reenabling_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                        max s2 + (S.L.ai_ext_stop_wiper_reenabling_time_alt)
+                    (L.L._game_time) (L.L.ai_ext_stop_wiper_reenabling_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 1.5 +
+                        (L.L.ai_ext_stop_turn_engine_off) * max + (S.L.ai_ext_stop_wiper_reenabling_time_alt)
                 {endif}
-                (L.S.GetTime) (L.L.ai_ext_stop_wiper_reenabling_time_alt) <= s2
+                (L.L.ai_stop_timer) l3 >= (L.L.ai_ext_stop_wiper_reenabling_time_alt) s3 -1 = ! (L.L._game_time) l3 >= && ||
+                {if}
+                    0 s2
+                    l3 -1 = !
+                    {if}
+                        -1 (S.L.ai_ext_stop_wiper_reenabling_time_alt)
+                    {endif}
+                {endif}
+            {endif}
+        {endif}
+        l2 (S.L.ai_ext_stop_disabled_wipers)
+        (L.L.ai_wiper_target) s0
+
+        1 s1
+        l2
+        {if}
+            (L.L.ai_ext_stop_disable_wipers)
+            {if}
+                0 s0
             {else}
-                0 s2
+                l0 1 - 0 max s0
+            {endif}
+            l0 ! (L.L.ai_wiper_off_timer) &&
+            {if}
+                0 (S.L.ai_wiper_off_timer) (S.L.ai_wiper_target)
             {endif}
         {else}
-            0 s2
-        {endif}
-        (L.L.ai_wiper_target) s0 !
-        {if}
-            0 (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
-            l1 ! l2 ! &&
+            l0 !
             {if}
                 (L.L.ai_precip_rate) (L.L.Rain_Window_Wiped_Wetness) (L.L.ai_wiper_manual_int_wetness_threshold) > &&
                 {if}
+                    0 s1
                     (L.L.ai_wiper_manual_int_timer) (L.S.Timegap) + (S.L.ai_wiper_manual_int_timer) (L.L.ai_wiper_manual_int) >
                     {if}
-                        1 (S.L.cp_wischer_intervall_sw)
                         0 (S.L.ai_wiper_manual_int_timer)
-                    {endif}
-                {else}
-                    0 (S.L.cp_wischer_intervall_sw) (S.L.ai_wiper_manual_int_timer)
-                {endif}
-            {else}
-                0 (S.L.cp_wischer_intervall_sw) (S.L.ai_wiper_manual_int_timer)
-            {endif}
-        {else}
-            0 (S.L.ai_wiper_manual_int_timer)
-            l1 l2 ||
-            {if}
-                l0 1 = (L.L.ai_ext_stop_disable_wipers) ||
-                {if}
-                    0 (S.L.cp_wischer_intervall_sw) (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
-                {else}
-                    l0 2 =
-                    {if}
-                        1 (S.L.cp_wischer_intervall_sw)
-                        0 (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
+                        1 s0
                     {else}
-                        1 (S.L.cp_wischer_einaus_sw)
-                        0 (S.L.cp_wischer_intervall_sw) (S.L.cp_wischer_schnell_sw)
+                        (L.L.cp_wischer_intervall_sw) s0
                     {endif}
-                {endif}
-            {else}
-                l0 1 =
-                {if}
-                    1 (S.L.cp_wischer_intervall_sw)
-                    0 (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
-                {else}
-                    l0 2 =
-                    {if}
-                        1 (S.L.cp_wischer_einaus_sw)
-                        0 (S.L.cp_wischer_intervall_sw) (S.L.cp_wischer_schnell_sw)
-                    {else}
-                        l0 3 =
-                        {if}
-                            1 (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
-                            0 (S.L.cp_wischer_intervall_sw)
-                        {else}
-                            0 (S.L.cp_wischer_einaus_sw) (S.L.cp_wischer_schnell_sw)
-                        {endif}
-                    {endif}
-                {endif}
-                (L.L.ai_ext_stop_wiper_reenabling_time_alt) -1 = !
-                {if}
-                    -1 (S.L.ai_ext_stop_wiper_reenabling_time_alt)
                 {endif}
             {endif}
         {endif}
-        l1 (L.L.ai_wiper_target) && (L.L.cp_wischer_intervall_sw) ! && (L.L.cp_wischer_einaus_sw) ! && (L.L.ai_wiper_off_timer) &&
+
+        l1 (L.L.ai_wiper_manual_int_timer) &&
         {if}
-            0 (S.L.ai_wiper_target) (S.L.ai_wiper_off_timer)
+            0 (S.L.ai_wiper_manual_int_timer)
         {endif}
+
+        l0 (L.L.cp_wischer_intervall_sw) (L.L.cp_wischer_einaus_sw) 2 * + (L.L.cp_wischer_schnell_sw) + = !
+        {if}
+            (T.L.ev_wischerhebel)
+            0 s1 s3 s4
+            l0 1 =
+            {if}
+                1 s1
+            {else}
+                l0 2 =
+                {if}
+                    1 s3
+                {else}
+                    l0 3 =
+                    {if}
+                        1 s3 s4
+                    {endif}
+                {endif}
+            {endif}
+            l1 (S.L.cp_wischer_intervall_sw)
+            l3 (S.L.cp_wischer_einaus_sw)
+            l4 (S.L.cp_wischer_schnell_sw)
+        {endif}
+
     {else}
         0 (S.L.ai_wiper_fast_timer) (S.L.ai_wiper_cont_timer) (S.L.ai_wiper_int_timer) (S.L.ai_wiper_off_timer) (S.L.ai_wiper_manual_int_timer)
         -1 (S.L.ai_ext_stop_wiper_reenabling_time_alt)
@@ -235,26 +237,24 @@
 '		Wischer Intervall
 		(L.L.wiper_intervall_sw) (L.L.wiper_intervall_on) ! && (L.L.wiper_intervall_time) (C.L.wiper_intervall) > ||
 		{if}
-		(L.L.wiperrunning) !
-		{if}
-			(T.L.wiper_start)
-			(L.L.Rain_Window_Wiped_Wetness) 0 =
-			{if}
-				(T.L.wiper_start_dry)
-			{endif}
-		{endif}
-		1 (S.L.wiper_intervall_on) (S.L.wiperrunning)
-		(L.S.GetTime) (S.L.wiper_intervall_starttime)
-
-
-	{endif}
+            (L.L.wiperrunning) !
+            {if}
+                (T.L.wiper_start)
+                (L.L.Rain_Window_Wiped_Wetness) 0 =
+                {if}
+                    (T.L.wiper_start_dry)
+                {endif}
+            {endif}
+            1 (S.L.wiper_intervall_on) (S.L.wiperrunning)
+            (L.S.GetTime) (S.L.wiper_intervall_starttime)
+        {endif}
 
 	{else}
 		0 (S.L.wiperrunning) (S.L.wiper_wash)
 	{endif}
 
 
-	(L.L.wiperrun) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos) (S.L.Rain_Wiper_Pos) (S.L.Dirt_Wiper_Pos) 
+	(L.L.wiperrun) 1.5 pi * + sin 1 + 2 / (S.L.wiperpos) (S.L.Rain_Wiper_Pos) (S.L.Dirt_Wiper_Pos)
 
 	(L.L.wiperrun) 2 * 1.5 pi * + sin 1 + 2 / (S.L.wiperpos_2xspeed)
 

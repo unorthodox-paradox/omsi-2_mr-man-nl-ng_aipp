@@ -48,6 +48,7 @@
                 (S.$.ai_virtual_terminus_stop_name) (S.$.ai_virtual_terminus_stop_name_last)
             (L.L.AI_Scheduled_AtStation) (S.L.ai_scheduled_at_station) (S.L.ai_scheduled_at_station_last)
             (M.L.ai_is_on_service_trip) (L.L.ai_on_service_trip) (S.L.ai_on_service_trip_last)
+            (M.L.ai_calc_trip_duration) (L.L.ai_trip_duration) (S.L.ai_trip_duration_last)
         {else}
             (L.L.schedule_active) s0 (L.L.ai_schedule_active) s1 = !
             {if}
@@ -184,6 +185,7 @@
                 {endif}
             {endif}
             (M.L.ai_is_on_service_trip)
+            (M.L.ai_calc_trip_duration)
         {endif}
     {endif}
 {end}
@@ -204,6 +206,23 @@
         l2
         {if}
             l0 (S.L.ai_on_service_trip)
+        {endif}
+    {endif}
+{end}
+
+{macro:ai_calc_trip_duration}
+    (L.L.ai_schedule_active)
+    {if}
+        0 (M.V.GetTTBusstopArr) (S.L._r10) (L.L.ai_terminus_stop_tt_index) (M.V.GetTTBusstopDep) (S.L._r11) (M.L.calc_time_diff) (L.L._r12) s0
+    {else}
+        -1 s0
+    {endif}
+    (L.L.ai_trip_duration) s1 l0 = ! s2 l1 (L.L.ai_trip_duration_last) = ! ||
+    {if}
+        l1 (S.L.ai_trip_duration_last)
+        l2
+        {if}
+            l0 (S.L.ai_trip_duration)
         {endif}
     {endif}
 {end}

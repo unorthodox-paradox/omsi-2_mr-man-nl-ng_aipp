@@ -37,8 +37,8 @@
 '- Rüdiger Hülsmann	03.06.2010	Automatic battery switch on key insertion (For standard-II-buses)
 '- Rüdiger Hülsmann	08.06.2010	Automatic battery switch made optional, Auxiliary heating switchable by button or switch
 '- Rüdiger Hülsmann	23.06.2010	Added mouse-clickable wiper lever on wheel console
-'- Rüdiger Hülsmann	08.07.2010	Wiper lever: Improved usability 
-'- Rüdiger Hülsmann	18.07.2010	Wiper lever: soundfix for keyboard operation and new ignition key algorithm 
+'- Rüdiger Hülsmann	08.07.2010	Wiper lever: Improved usability
+'- Rüdiger Hülsmann	18.07.2010	Wiper lever: soundfix for keyboard operation and new ignition key algorithm
 '- Rüdiger Hülsmann	16.09.2010	Auxheat Switch Bugfix
 '- Rüdiger Hülsmann	18.09.2010	Imported microphone switch
 '- Rüdiger Hülsmann	17.10.2010	Added pressure warning needle
@@ -82,7 +82,7 @@
 
 {macro:cockpit_init}
 	0 (S.L.cockpit_hupe_volume) (S.L.door_handsteuerung)
-	1 (S.L.cp_retarder_sw) (S.L.cp_lenkrad_visible) (S.L.cp_taster_warnblinker) (S.L.cockpit_wischer_drehschalter_mode) 
+	1 (S.L.cp_retarder_sw) (S.L.cp_lenkrad_visible) (S.L.cp_taster_warnblinker) (S.L.cockpit_wischer_drehschalter_mode)
 
 	0.6 (S.L.cp_taster_warnblinker) (S.L.cp_taster_standheizung)
 
@@ -96,12 +96,12 @@
 	353 (M.V.NrSpecRandom) 0.8 * 0.1 + (S.L.cp_Fahrgastpendel_2_reib)
 	354 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_refl)
 	355 (M.V.NrSpecRandom) -0.1 * 0.05 - (S.L.cp_Fahrgastpendel_2_refl)
-    
+
     3 10000 random 1000 / + (S.L.ai_ext_stop_hand_brake_setting_delay)
     3 10000 random 1000 / + (S.L.ai_ext_stop_hand_brake_release_delay)
     50000 random 10000 / (S.L.ai_ext_stop_hand_brake_release_delay_alt)
     -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
-    
+
     1 (S.L.cockpit_gang3)
 
     3 10000 random 1000 / + (S.L.ai_ext_stop_gear_disengagement_delay)
@@ -140,68 +140,68 @@
         {endif}
     {endif}
     (S.L.cockpit_wischer_drehschalter)
-    
+
     (L.L.AI)
     {if}
-        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_engage_hand_brake) &&
+        (L.L.ai_departure_lookahead) s2
+
+        (L.L.AI_Scheduled_AtStation) s1 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_engage_hand_brake) &&
             (L.L.ai_stop_timer) (L.L.ai_ext_stop_hand_brake_setting_delay) (L.L.ai_estimated_stop_duration) 9 / min > && (L.L.ai_stop_timer)
-            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_hand_brake_release_delay) - (L.L.ai_estimated_stop_duration) d 9 / - max < && s0
+            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_hand_brake_release_delay) - (L.L.ai_estimated_stop_duration) d 9 / - max s3 < && s0
             (L.L.bremse_feststell_sw) ! &&
         {if}
             1 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
             (T.L.ev_bremse_feststell_ein)
         {else}
-            l0 ! (L.L.bremse_feststell_sw) &&
+            l0 ! (L.L.bremse_feststell_sw) && l1 ! && l2 &&
             {if}
-                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = &&
+                (L.L.ai_quick_departure) (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = &&
                 {if}
-                    (L.S.GetTime) (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt)
-                {else}
-                    (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = (L.S.GetTime) (L.L.ai_ext_stop_hand_brake_release_time_alt) > ||
+                    (L.L._game_time) (L.L.ai_ext_stop_hand_brake_release_delay_alt) + (S.L.ai_ext_stop_hand_brake_release_time_alt)
+                {endif}
+                (L.L.ai_stop_timer) l3 >= (L.L.ai_ext_stop_hand_brake_release_time_alt) s0 -1 = ! (L.L._game_time) l0 >= && ||
+                {if}
+                    0 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
+                    (T.L.ev_bremse_feststell_aus)
+                    l0 -1 = !
                     {if}
-                        0 (S.L.bremse_feststell_sw) (S.L.bremse_feststell)
-                        (T.L.ev_bremse_feststell_aus)
-                        (L.L.ai_ext_stop_hand_brake_release_time_alt) -1 = !
-                        {if}
-                            -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
-                        {endif}
+                        -1 (S.L.ai_ext_stop_hand_brake_release_time_alt)
                     {endif}
                 {endif}
             {endif}
         {endif}
-        
-        (L.L.AI_Scheduled_AtStation) 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_disengage_gear) &&
-            (L.L.ai_stop_timer) (L.L.ai_ext_stop_gear_disengagement_delay) (L.L.ai_estimated_stop_duration) 8 / min > && (L.L.ai_stop_timer)
-            (L.L.ai_estimated_stop_duration) (L.L.ai_ext_stop_gear_engagement_delay) - (L.L.ai_estimated_stop_duration) d 8 / - max
-            (L.L.ai_ext_stop_engine_on_actual_delay) 0.5 + (L.L.ai_ext_stop_turn_engine_off) * max < && s0 (L.L.antrieb_getr_gangvorwahl) 4 = &&
+
+        l1 1 = (L.L.ai_stop_arrival_initialized) && (L.L.bremse_halte_sw) && (L.L.ai_ext_stop_disengage_gear) && (L.L.ai_stop_timer)
+            (L.L.ai_ext_stop_gear_disengagement_delay) (L.L.ai_estimated_stop_duration) 8 / min > && (L.L.ai_stop_timer) (L.L.ai_estimated_stop_duration)
+            (L.L.ai_ext_stop_gear_engagement_delay) - (L.L.ai_estimated_stop_duration) d 8 / - max (L.L.ai_ext_stop_engine_on_actual_delay) 1 +
+            (L.L.ai_ext_stop_turn_engine_off) * max s3 < && s0 (L.L.antrieb_getr_gangvorwahl) 4 = &&
         {if}
             (T.L.ev_gangwahltaster_N)
-            (L.S.GetTime) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
+            (L.L._game_time) (C.L.antrieb_gangwahlzeit) (C.L.antrieb_neutralwahlzeit) - - (S.L.antrieb_getr_gangwahlzeitpunkt)
             1 (S.L.antrieb_getr_gangvorwahl)
             0 (S.L.cockpit_gang3)
         {else}
-            l0 ! (L.L.antrieb_getr_gangvorwahl) 1 = &&
+            l0 ! (L.L.antrieb_getr_gangvorwahl) 1 = && l1 ! && l2 &&
             {if}
-                (L.L.AI_Scheduled_AtStation) -1 = (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = &&
+                (L.L.ai_quick_departure) (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = &&
                 {if}
-                    (L.S.GetTime) (L.L.ai_ext_stop_gear_engagement_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 0.5 + (L.L.ai_ext_stop_turn_engine_off) *
-                        max s1 + (S.L.ai_ext_stop_gear_engagement_time_alt)
-                {else}
-                    (L.L.ai_ext_stop_gear_engagement_time_alt) -1 = (L.S.GetTime) (L.L.ai_ext_stop_gear_engagement_time_alt) > ||
+                    (L.L._game_time) (L.L.ai_ext_stop_gear_engagement_delay_alt) (L.L.ai_ext_stop_engine_on_delay_alt) 1 + (L.L.ai_ext_stop_turn_engine_off) *
+                        max + (S.L.ai_ext_stop_gear_engagement_time_alt)
+                {endif}
+                (L.L.ai_stop_timer) l3 >= (L.L.ai_ext_stop_gear_engagement_time_alt) s0 -1 = ! (L.L._game_time) l0 >= && ||
+                {if}
+                    (T.L.ev_gangwahltaster)
+                    4 (S.L.antrieb_getr_gangvorwahl)
+                    1 (S.L.cockpit_gang3)
+                    (L.L._game_time) (S.L.antrieb_getr_gangwahlzeitpunkt)
+                    l0 -1 = !
                     {if}
-                        (T.L.ev_gangwahltaster)
-                        4 (S.L.antrieb_getr_gangvorwahl)
-                        1 (S.L.cockpit_gang3)
-                        (L.S.GetTime) (S.L.antrieb_getr_gangwahlzeitpunkt)
-                        (L.L.ai_ext_stop_gear_engagement_time_alt) - 1 = !
-                        {if}
-                            -1 (S.L.ai_ext_stop_gear_engagement_time_alt)
-                        {endif}
+                        -1 (S.L.ai_ext_stop_gear_engagement_time_alt)
                     {endif}
                 {endif}
             {endif}
         {endif}
-        
+
         (L.L.cp_fahrerfenster_pos) (S.L._r10) (L.L.ai_cp_fahrerfenster_pos_target) (S.L._r11) 1 (S.L._r12)
         (L.L._r10) (L.L._r11) = !
         {if}
@@ -222,7 +222,7 @@
                 {endif}
             {endif}
         {endif}
-        
+
         (L.L.cp_rollo_pos) (S.L._r10) (L.L.ai_cp_rollo_pos_target) (S.L._r11) 1 (S.L._r12)
         (L.L._r10) (L.L._r11) = !
         {if}
@@ -239,11 +239,11 @@
         {if}
             (T.L.ev_rollo_end)
         {endif}
-        
+
         (L.L.doorTarget_0) (L.L.door_0) 0.07 < && (L.L.doorTarget_0) ! (L.L.door_0) 0.93 > && || (S.L.cockpit_tuertaster1)
-        
+
         (L.L.doorTarget_1) (L.L.door_1) 0.07 < && (L.L.doorTarget_1) ! (L.L.door_1) 0.93 > && || (S.L.cockpit_tuertaster2)
-        
+
     {else}
         (L.L.cp_fahrerfenster_pos) (S.L.ai_cp_fahrerfenster_pos_target)
         (L.L.cp_rollo_pos) (S.L.ai_cp_rollo_pos_target)
@@ -279,7 +279,7 @@
 		(L.S.Time) s0 60 / (S.L.cockpit_uhr_min) 12 / (S.L.cockpit_uhr_std)
 		l0 trunc (S.L.cockpit_uhr_sek)
 	{endif}
-{end} 
+{end}
 
 {macro:drehzahlmesser_frame}
 	(L.L.engine_n) 3000 270 / / (S.L.cockpit_drehzahlwinkel)
@@ -354,10 +354,10 @@
 '	Türkontrolle
 	(C.L.cockpit_aftdoorlight_condition_D92)
 	{if}
-		(L.L.door_2) 0 = 
+		(L.L.door_2) 0 =
 		(L.L.door_3) 0 = && !
 	{else}
-		(L.L.door_2) 0.11 > 
+		(L.L.door_2) 0.11 >
 		(L.L.door_3) 0.11 > ||
 		(L.L.doorTarget_23) ||
 	{endif}
@@ -367,10 +367,10 @@
 '	Türkontrolle 2
 	(C.L.cockpit_aftdoorlight_condition_D92)
 	{if}
-		(L.L.door_4) 0 = 
+		(L.L.door_4) 0 =
 		(L.L.door_5) 0 = && !
 	{else}
-		(L.L.door_4) 0.11 > 
+		(L.L.door_4) 0.11 >
 		(L.L.door_5) 0.11 > ||
 		(L.L.doorTarget_45) ||
 	{endif}
@@ -570,7 +570,7 @@
 '	Konstante Ablauf	l3 (Einheiten/s)
 
 'Anlauf oder Auslauf?
-	l0 l1 > 
+	l0 l1 >
 	{if}
 		l2 (L.S.Timegap) * 1 min -1 max s4
 	{else}
@@ -593,27 +593,27 @@
 	(L.L.kmcounter_km) (L.L.kmcounter_m) 1000 / + 10 *
 	(S.L.cp_odometer_01)
 
-	(L.L.cp_odometer_01) 10 / trunc 
+	(L.L.cp_odometer_01) 10 / trunc
 	(L.L.cp_odometer_01) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_1)
 
-	(L.L.cp_odometer_1) 10 / trunc 
+	(L.L.cp_odometer_1) 10 / trunc
 	(L.L.cp_odometer_1) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_10)
 
-	(L.L.cp_odometer_10) 10 / trunc 
+	(L.L.cp_odometer_10) 10 / trunc
 	(L.L.cp_odometer_10) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_100)
 
-	(L.L.cp_odometer_100) 10 / trunc 
+	(L.L.cp_odometer_100) 10 / trunc
 	(L.L.cp_odometer_100) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_1000)
 
-	(L.L.cp_odometer_1000) 10 / trunc 
+	(L.L.cp_odometer_1000) 10 / trunc
 	(L.L.cp_odometer_1000) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_10000)
 
-	(L.L.cp_odometer_10000) 10 / trunc 
+	(L.L.cp_odometer_10000) 10 / trunc
 	(L.L.cp_odometer_10000) 10 / d trunc - (F.L.odometer_10er-uebertrag) +
 	(S.L.cp_odometer_100000)
 
@@ -647,7 +647,7 @@
 
 {macro:Thermometer_frame}
 
-	(L.L.Cabinair_Temp) s0 trunc " 3" $IntToStrEnh "." $+ 
+	(L.L.Cabinair_Temp) s0 trunc " 3" $IntToStrEnh "." $+
 	l0 abs l0 abs trunc - 10 * trunc " 1" $IntToStrEnh $+ "C" $+
 	(S.$.cockpit_temperatur)
 {end}
