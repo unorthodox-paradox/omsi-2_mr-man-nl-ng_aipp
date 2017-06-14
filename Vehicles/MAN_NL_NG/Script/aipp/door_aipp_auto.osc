@@ -1297,7 +1297,7 @@
 
                 (L.L.door_AI_timer) (L.L.ai_timegap) + (S.L.door_AI_timer)
 
-                (L.L.antrieb_getr_gangvorwahl) 4 = (L.L.bremse_feststell_sw) ! && (L.L.engine_on) &&
+                (L.L.antrieb_getr_gangwahl) 4 = (L.L.bremse_feststell_sw) ! && (L.L.engine_on) &&
                 {if}
                     (L.L.door_2) ! (L.L.door_4) ! && (L.L.doorTarget_23) ! && (L.L.doorTarget_45) ! && (L.L.doorSpeed_2) ! &&
                         (L.L.doorSpeed_3) ! && (L.L.doorSpeed_4) ! && (L.L.doorSpeed_5) ! && (L.L.bremse_halte_sw) &&
